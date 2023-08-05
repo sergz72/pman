@@ -5,6 +5,7 @@ public class KeePassDb
     internal const string FileCorrupted = "corrupted DB file";
     
     private readonly KeePassDbHeader _header;
+    private readonly KeePassInnerHeader _innerHeader;
     
     public uint VersionMajor => _header.VersionMajor;
     public uint VersionMinor => _header.VersionMinor;
@@ -43,6 +44,8 @@ public class KeePassDb
         }
 
         byte[] decompressed = _header.Decompress(decrypted);
+
+        _innerHeader = new KeePassInnerHeader(decompressed);
     }
 
     public void PrintDbInfo(TextWriter writer)
