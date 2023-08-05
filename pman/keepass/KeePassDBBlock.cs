@@ -30,7 +30,7 @@ public class KeePassDbBlock
     private byte[] CalculateHmac256(byte[] bytes, KeePassDbHeader header, long blockNumber)
     {
         var blockNumberBytes = BitConverter.GetBytes(blockNumber);
-        var transformedKey = KeePassDbHeader.TransformHmacKey(header.HmacKey, blockNumberBytes);
+        var transformedKey = header.TransformHmacKey(blockNumberBytes);
         HMACSHA256 hmacsha256 = new HMACSHA256(transformedKey);
         hmacsha256.TransformBlock(blockNumberBytes, 0, blockNumberBytes.Length, null, 0);
         var lengthBytes = BitConverter.GetBytes(_dataLength);
@@ -41,8 +41,8 @@ public class KeePassDbBlock
 
     public bool IsEmpty() => _dataLength == 0;
 
-    public byte[] Decrypt()
+    public byte[] Decrypt(byte[] bytes, KeePassDbHeader header)
     {
-        
+        return header.Decrypt(bytes, _dataOffset, _dataLength);
     }
 }

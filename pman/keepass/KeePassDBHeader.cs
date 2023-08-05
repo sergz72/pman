@@ -5,7 +5,13 @@ namespace pman.keepass;
 public struct KeePassDbHeader
 {
     private static readonly byte[] Minus1 = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
-    
+
+    private static readonly byte[] AesCipherId =
+    {
+        0x31, 0xC1, 0xF2, 0xE6, 0xBF, 0x71, 0x43, 0x50,
+        0xBE, 0x58, 0x05, 0x21, 0x6A, 0xFC, 0x5A, 0xFF
+    };
+
     public enum HeaderFieldType
     {
         EndOfHeader = 0,
@@ -72,9 +78,11 @@ public struct KeePassDbHeader
     internal readonly Dictionary<HeaderFieldType, HeaderField> HeaderFields;
 
     private readonly byte[] _masterSeed;
+    private readonly byte[] _encryptionIv;
     internal readonly VariantDictionary KdfParameters;
-    private readonly IKeyDerivationFunction _kdf;
-    internal readonly byte[] HmacKey;
+    private readonly byte[] _hmacKey;
+    private readonly byte[] _encryptionKey;
+    private readonly IEncryptionEngine _encryptionEngine;
 
     internal KeePassDbHeader(byte[] bytes, KeePassCredentials credentials)
     {
@@ -88,7 +96,7 @@ public struct KeePassDbHeader
             throw new FormatException("unsupported DB version");
         VersionMinor = version & 0xFFFF;
         Length = 12;
-        
+
         HeaderFields = new Dictionary<HeaderFieldType, HeaderField>();
         for (;;)
         {
@@ -102,14 +110,38 @@ public struct KeePassDbHeader
         }
 
         _masterSeed = GetMasterSeed();
+        _encryptionIv = GetEncryptionIv();
+        _encryptionEngine = GetEncryptionEngine();
+
 
         KdfParameters = BuildKdfParameters();
 
-        _kdf = new Argon2Kdf(KdfParameters);
+        IKeyDerivationFunction kdf = new Argon2Kdf(KdfParameters);
 
-        HmacKey = CalculateHmacKey(credentials);
+        var transformedKey = kdf.GetTransformedKey(credentials.Key);
+        _hmacKey = CalculateHmacKey(transformedKey);
+        _encryptionKey = CalculateEncryptionKey(transformedKey);
 
         ValidateHeader(bytes);
+    }
+
+    private IEncryptionEngine GetEncryptionEngine()
+    {
+        if (!HeaderFields.TryGetValue(HeaderFieldType.CipherId, out var cipherId))
+            throw new FormatException("cipher id header is missing");
+        if (cipherId.FieldData == null || cipherId.FieldData.Length != 16)
+            throw new FormatException("cipher id header is wrong");
+        if (!cipherId.FieldData!.SequenceEqual(AesCipherId))
+            throw new FormatException("unsupported cipher engine");
+        return new AesEngine(_encryptionKey, _encryptionIv);
+    }
+
+    private byte[] CalculateEncryptionKey(byte[] transformedKey)
+    {
+        SHA256 sha = SHA256.Create();
+        sha.TransformBlock(_masterSeed, 0, _masterSeed.Length, null, 0);
+        sha.TransformFinalBlock(transformedKey, 0, transformedKey.Length);
+        return sha.Hash!;
     }
 
     private VariantDictionary BuildKdfParameters()
@@ -140,11 +172,19 @@ public struct KeePassDbHeader
         return masterSeed.FieldData!;
     }
 
-    private byte[] CalculateHmacKey(KeePassCredentials credentials)
+    private byte[] GetEncryptionIv()
+    {
+        if (!HeaderFields.TryGetValue(HeaderFieldType.EncryptionIv, out var encryptionIv))
+            throw new FormatException("encryptionIv header is missing");
+        if (encryptionIv.FieldData == null)
+            throw new FormatException("encryptionIv header is wrong");
+        return encryptionIv.FieldData!;
+    }
+
+    private byte[] CalculateHmacKey(byte[] transformedKey)
     {
         var buffer = new byte[65];
         Array.Copy(_masterSeed, buffer, _masterSeed.Length);
-        var transformedKey = _kdf.GetTransformedKey(credentials.Key);
         Array.Copy(transformedKey, 0, buffer, _masterSeed.Length, transformedKey.Length);
         buffer[64] = 1;
         return SHA512.HashData(buffer);
@@ -152,21 +192,26 @@ public struct KeePassDbHeader
 
     private byte[] CalculateHmac256(byte[] bytes)
     {
-        var hmacKey64 = TransformHmacKey(HmacKey, Minus1);
+        var hmacKey64 = TransformHmacKey(Minus1);
         HMACSHA256 hmacsha256 = new HMACSHA256(hmacKey64);
         return hmacsha256.ComputeHash(bytes, 0, Length);
     }
 
-    public static byte[] TransformHmacKey(byte[] hmacKey, byte[] bytes)
+    public byte[] TransformHmacKey(byte[] bytes)
     {
         var sha = SHA512.Create();
         sha.TransformBlock(bytes, 0, bytes.Length, null, 0);
-        sha.TransformFinalBlock(hmacKey, 0, hmacKey.Length);
+        sha.TransformFinalBlock(_hmacKey, 0, _hmacKey.Length);
         return sha.Hash!;
     }
 
     private byte[] CalculateSha256(byte[] bytes)
     {
         return SHA256.HashData(bytes.AsSpan(0, Length));
+    }
+
+    public byte[] Decrypt(byte[] bytes, int offset, int length)
+    {
+        return _encryptionEngine.Decrypt(bytes, offset, length);
     }
 }
