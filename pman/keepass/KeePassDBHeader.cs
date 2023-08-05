@@ -23,42 +23,7 @@ public struct KeePassDbHeader
         KdfParameters = 11, // KDBX 4, superseding Transform*
         PublicCustomData = 12 // KDBX 4
     }
-
-    public struct HeaderField
-    {
-        public readonly HeaderFieldType FieldType;
-        public readonly byte[]? FieldData;
-
-        internal int Length { get; private set; }
-
-        internal HeaderField(byte[] bytes, int offset)
-        {
-            FieldType = ValidateFieldType(bytes[offset]);
-            Length = 1;
-            var size = ReadFieldSize(bytes, offset + Length);
-            if (size <= 0) return;
-            FieldData = new byte[size];
-            Array.Copy(bytes, offset + Length, FieldData, 0, size);
-            Length += size;
-        }
-
-        private static HeaderFieldType ValidateFieldType(byte b)
-        {
-            if (Enum.IsDefined(typeof(HeaderFieldType), (Int32)b))
-                return (HeaderFieldType)b;
-            throw new FormatException(KeePassDb.FileCorrupted);
-        }
-
-        private int ReadFieldSize(byte[] bytes, int offset)
-        {
-            var size = BitConverter.ToInt32(bytes, offset);
-            Length += 4;
-            if (size < 0)
-                throw new FormatException(KeePassDb.FileCorrupted);
-            return size;
-        }
-    }
-
+    
     /// <summary>
     /// File identifier, first 32-bit value.
     /// </summary>
@@ -75,7 +40,7 @@ public struct KeePassDbHeader
 
     internal int Length { get; private set; }
 
-    internal readonly Dictionary<HeaderFieldType, HeaderField> HeaderFields;
+    internal readonly Dictionary<HeaderFieldType, KeePassHeaderField<HeaderFieldType>> HeaderFields;
 
     private readonly byte[] _masterSeed;
     private readonly byte[] _encryptionIv;
@@ -96,19 +61,11 @@ public struct KeePassDbHeader
         if (VersionMajor != 4)
             throw new FormatException("unsupported DB version");
         VersionMinor = version & 0xFFFF;
-        Length = 12;
-
-        HeaderFields = new Dictionary<HeaderFieldType, HeaderField>();
-        for (;;)
-        {
-            var field = new HeaderField(bytes, Length);
-            Length += field.Length;
-            if (field.FieldType == HeaderFieldType.EndOfHeader)
-                break;
-            if (HeaderFields.ContainsKey(field.FieldType))
-                throw new FormatException("duplicate header field type");
-            HeaderFields[field.FieldType] = field;
-        }
+    
+        HeaderFields =
+            KeePassHeaderField<HeaderFieldType>.ReadHeaderFields(bytes, 12, out var offset, "header",
+                HeaderFieldType.EndOfHeader);
+        Length = offset;
 
         _masterSeed = GetMasterSeed();
         _encryptionIv = GetEncryptionIv();

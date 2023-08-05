@@ -1,4 +1,6 @@
-﻿namespace pman.keepass;
+﻿using System.Xml;
+
+namespace pman.keepass;
 
 public class KeePassDb
 {
@@ -10,7 +12,7 @@ public class KeePassDb
     public uint VersionMajor => _header.VersionMajor;
     public uint VersionMinor => _header.VersionMinor;
 
-    public Dictionary<KeePassDbHeader.HeaderFieldType, KeePassDbHeader.HeaderField> HeaderFields => _header.HeaderFields;
+    public Dictionary<KeePassDbHeader.HeaderFieldType, KeePassHeaderField<KeePassDbHeader.HeaderFieldType>> HeaderFields => _header.HeaderFields;
 
     public KeePassDb(string fileName, string password, string? keyFileName)
     {
@@ -46,6 +48,11 @@ public class KeePassDb
         byte[] decompressed = _header.Decompress(decrypted);
 
         _innerHeader = new KeePassInnerHeader(decompressed);
+
+        MemoryStream xmlStream = new MemoryStream(decompressed, _innerHeader.DataOffset,
+            decompressed.Length - _innerHeader.DataOffset);
+        XmlDocument document = new XmlDocument();
+        document.Load(xmlStream);
     }
 
     public void PrintDbInfo(TextWriter writer)
@@ -55,5 +62,7 @@ public class KeePassDb
             writer.WriteLine("Header field {0} size {1}", field.Key, field.Value.FieldData?.Length);
         foreach (var entry in _header.KdfParameters.Entries)
             writer.WriteLine("Kdf parameter {0} type {1} size {2}", entry.Key, entry.Value.Type, entry.Value.Value.Length);
+        foreach (var field in _innerHeader.HeaderFields)
+            writer.WriteLine("Inner header field {0} size {1}", field.Key, field.Value.FieldData?.Length);
     }
 }
