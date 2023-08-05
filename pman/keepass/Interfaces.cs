@@ -7,5 +7,10 @@ public interface IKeyDerivationFunction
 
 public interface IEncryptionEngine
 {
-    byte[] Decrypt(byte[] buffer, int offset, int length);
+    byte[] Decrypt(byte[] bytes, int offset, int length);
+}
+
+public interface ICompressionEngine
+{
+    byte[] Decompress(byte[] bytes);
 }

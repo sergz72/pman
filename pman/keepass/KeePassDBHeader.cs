@@ -83,6 +83,7 @@ public struct KeePassDbHeader
     private readonly byte[] _hmacKey;
     private readonly byte[] _encryptionKey;
     private readonly IEncryptionEngine _encryptionEngine;
+    private readonly ICompressionEngine _compressionEngine;
 
     internal KeePassDbHeader(byte[] bytes, KeePassCredentials credentials)
     {
@@ -111,8 +112,8 @@ public struct KeePassDbHeader
 
         _masterSeed = GetMasterSeed();
         _encryptionIv = GetEncryptionIv();
-        _encryptionEngine = GetEncryptionEngine();
-
+        _compressionEngine = GetCompressionEngine();
+    
 
         KdfParameters = BuildKdfParameters();
 
@@ -121,8 +122,21 @@ public struct KeePassDbHeader
         var transformedKey = kdf.GetTransformedKey(credentials.Key);
         _hmacKey = CalculateHmacKey(transformedKey);
         _encryptionKey = CalculateEncryptionKey(transformedKey);
+        _encryptionEngine = GetEncryptionEngine();
 
         ValidateHeader(bytes);
+    }
+
+    private ICompressionEngine GetCompressionEngine()
+    {
+        if (!HeaderFields.TryGetValue(HeaderFieldType.CompressionFlags, out var compressionFlags))
+            throw new FormatException("compression flags header is missing");
+        if (compressionFlags.FieldData == null || compressionFlags.FieldData.Length != 4)
+            throw new FormatException("compression flags header is wrong");
+        
+        //if (!cipherId.FieldData!.SequenceEqual(AesCipherId))
+        //    throw new FormatException("unsupported cipher engine");
+        return new NoCompressionEngine();
     }
 
     private IEncryptionEngine GetEncryptionEngine()
@@ -213,5 +227,10 @@ public struct KeePassDbHeader
     public byte[] Decrypt(byte[] bytes, int offset, int length)
     {
         return _encryptionEngine.Decrypt(bytes, offset, length);
+    }
+    
+    public byte[] Decompress(byte[] bytes)
+    {
+        return _compressionEngine.Decompress(bytes);
     }
 }

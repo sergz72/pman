@@ -20,16 +20,29 @@ public class KeePassDb
         var dbBlocks = new List<KeePassDbBlock>();
         var maxL = bytes.Length - KeePassDbBlock.HeaderLength;
         long blockNumber = 0;
+        int dataLength = 0;
         while (l <= maxL)
         {
             var dbBlock = new KeePassDbBlock(bytes, l, _header, blockNumber++);
             if (!dbBlock.IsEmpty())
                 dbBlocks.Add(dbBlock);
             l += dbBlock.Length;
+            dataLength += dbBlock.DataLength;
         }
 
         if (l != bytes.Length)
             throw new FormatException(FileCorrupted);
+
+        byte[] decrypted = new byte[dataLength];
+        int offset = 0;
+        foreach (var block in dbBlocks)
+        {
+            var result = block.Decrypt(bytes, _header);
+            Array.Copy(result, 0, decrypted, offset, result.Length);
+            offset += block.DataLength;
+        }
+
+        byte[] decompressed = _header.Decompress(decrypted);
     }
 
     public void PrintDbInfo(TextWriter writer)

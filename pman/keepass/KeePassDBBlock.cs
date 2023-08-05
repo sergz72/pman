@@ -7,15 +7,15 @@ public class KeePassDbBlock
     private const int HmacHashLength = 32;
     internal const int HeaderLength = HmacHashLength + 4;
     public readonly int Length;
-    private readonly int _dataLength;
+    internal readonly int DataLength;
     private readonly int _dataOffset;
     
     public KeePassDbBlock(byte[] bytes, int offset, KeePassDbHeader header, long blockNumber)
     {
         _dataOffset = offset + HeaderLength;
-        _dataLength = BitConverter.ToInt32(bytes, offset + HmacHashLength);
-        Length = _dataLength + HeaderLength;
-        if ((_dataLength < 0) || (offset + Length > bytes.Length))
+        DataLength = BitConverter.ToInt32(bytes, offset + HmacHashLength);
+        Length = DataLength + HeaderLength;
+        if ((DataLength < 0) || (offset + Length > bytes.Length))
             throw new FormatException("wrong db block size");
         ValidateDbBlock(bytes, offset, header, blockNumber);
     }
@@ -33,16 +33,16 @@ public class KeePassDbBlock
         var transformedKey = header.TransformHmacKey(blockNumberBytes);
         HMACSHA256 hmacsha256 = new HMACSHA256(transformedKey);
         hmacsha256.TransformBlock(blockNumberBytes, 0, blockNumberBytes.Length, null, 0);
-        var lengthBytes = BitConverter.GetBytes(_dataLength);
+        var lengthBytes = BitConverter.GetBytes(DataLength);
         hmacsha256.TransformBlock(lengthBytes, 0, lengthBytes.Length, null, 0);
-        hmacsha256.TransformFinalBlock(bytes, _dataOffset, _dataLength);
+        hmacsha256.TransformFinalBlock(bytes, _dataOffset, DataLength);
         return hmacsha256.Hash!;
     }
 
-    public bool IsEmpty() => _dataLength == 0;
+    public bool IsEmpty() => DataLength == 0;
 
     public byte[] Decrypt(byte[] bytes, KeePassDbHeader header)
     {
-        return header.Decrypt(bytes, _dataOffset, _dataLength);
+        return header.Decrypt(bytes, _dataOffset, DataLength);
     }
 }
