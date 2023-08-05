@@ -133,10 +133,16 @@ public struct KeePassDbHeader
             throw new FormatException("compression flags header is missing");
         if (compressionFlags.FieldData == null || compressionFlags.FieldData.Length != 4)
             throw new FormatException("compression flags header is wrong");
-        
-        //if (!cipherId.FieldData!.SequenceEqual(AesCipherId))
-        //    throw new FormatException("unsupported cipher engine");
-        return new NoCompressionEngine();
+
+        switch (BitConverter.ToInt32(compressionFlags.FieldData!))
+        {
+            case 0:
+                return new NoCompressionEngine();
+            case 1:
+                return new GzipCompressionEngine();
+            default:
+                throw new FormatException("unsupported compression type");
+        }
     }
 
     private IEncryptionEngine GetEncryptionEngine()
