@@ -7,42 +7,48 @@ public class KeePassDbBlock
     private const int HmacHashLength = 32;
     internal const int HeaderLength = HmacHashLength + 4;
     public readonly int Length;
-    internal readonly int DataLength;
-    private readonly int _dataOffset;
+    private readonly byte[] _hmac;
+    private readonly byte[]? _data;
     
-    public KeePassDbBlock(byte[] bytes, int offset, KeePassDbHeader header, long blockNumber)
+    public KeePassDbBlock(byte[] bytes, int offset)
     {
-        _dataOffset = offset + HeaderLength;
-        DataLength = BitConverter.ToInt32(bytes, offset + HmacHashLength);
-        Length = DataLength + HeaderLength;
-        if ((DataLength < 0) || (offset + Length > bytes.Length))
+        _hmac = new byte[HmacHashLength];
+        Array.Copy(bytes, offset, _hmac, 0, HmacHashLength);
+        var dataOffset = offset + HeaderLength;
+        var dataLength = BitConverter.ToInt32(bytes, offset + HmacHashLength);
+        Length = dataLength + HeaderLength;
+        if ((dataLength < 0) || (offset + Length > bytes.Length))
             throw new FormatException("wrong db block size");
-        ValidateDbBlock(bytes, offset, header, blockNumber);
+        if (dataLength <= 0) return;
+        _data = new byte[dataLength];
+        Array.Copy(bytes, dataOffset, _data, 0, dataLength);
     }
 
-    private void ValidateDbBlock(byte[] bytes, int offset, KeePassDbHeader header, long blockNumber)
+    public int Validate(KeePassDbHeader header, long blockNumber)
     {
-        var hmac256 = CalculateHmac256(bytes, header, blockNumber);
-        if (!hmac256.SequenceEqual(new ArraySegment<byte>(bytes, offset, HmacHashLength)))
-            throw new FormatException(string.Format("db block {0} HMAC does not match", blockNumber));
+        var hmac256 = CalculateHmac256(header, blockNumber);
+        if (!hmac256.SequenceEqual(_hmac))
+            throw new FormatException($"db block {blockNumber} HMAC does not match");
+        return _data!.Length;
     }
 
-    private byte[] CalculateHmac256(byte[] bytes, KeePassDbHeader header, long blockNumber)
+    private byte[] CalculateHmac256(KeePassDbHeader header, long blockNumber)
     {
         var blockNumberBytes = BitConverter.GetBytes(blockNumber);
         var transformedKey = header.TransformHmacKey(blockNumberBytes);
         HMACSHA256 hmacsha256 = new HMACSHA256(transformedKey);
+        Array.Clear(transformedKey, 0, transformedKey.Length);
         hmacsha256.TransformBlock(blockNumberBytes, 0, blockNumberBytes.Length, null, 0);
-        var lengthBytes = BitConverter.GetBytes(DataLength);
+        var lengthBytes = BitConverter.GetBytes(_data!.Length);
         hmacsha256.TransformBlock(lengthBytes, 0, lengthBytes.Length, null, 0);
-        hmacsha256.TransformFinalBlock(bytes, _dataOffset, DataLength);
+        hmacsha256.TransformFinalBlock(_data, 0, _data.Length);
         return hmacsha256.Hash!;
     }
 
-    public bool IsEmpty() => DataLength == 0;
+    public bool IsEmpty() => _data == null;
 
-    public byte[] Decrypt(byte[] bytes, KeePassDbHeader header)
+    public byte[] Decrypt(KeePassDbHeader header)
     {
-        return header.Decrypt(bytes, _dataOffset, DataLength);
+        return header.DecryptData(_data!);
     }
 }

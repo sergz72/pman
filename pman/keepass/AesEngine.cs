@@ -4,20 +4,25 @@ namespace pman.keepass;
 
 public class AesEngine: IEncryptionEngine
 {
-    private readonly ICryptoTransform _decryptor;
+    private readonly Aes _aes;
+    private ICryptoTransform _decryptor;
     
-    public AesEngine(byte[] key, byte[] iv)
+    public AesEngine(byte[] iv)
     {
-        var aes = Aes.Create();
-        aes.Key = key;
-        aes.IV = iv;
-        aes.Mode = CipherMode.CBC;
-        aes.Padding = PaddingMode.PKCS7;
-        _decryptor = aes.CreateDecryptor();
+        _aes = Aes.Create();
+        _aes.IV = iv;
+        _aes.Mode = CipherMode.CBC;
+        _aes.Padding = PaddingMode.PKCS7;
     }
 
-    public byte[] Decrypt(byte[] bytes, int offset, int length)
+    public void Init(byte[] key)
     {
-        return _decryptor.TransformFinalBlock(bytes, offset, length);
+        _aes.Key = key;
+        _decryptor = _aes.CreateDecryptor();
+    }
+
+    public byte[] Decrypt(byte[] bytes)
+    {
+        return _decryptor.TransformFinalBlock(bytes, 0, bytes.Length);
     }
 }
