@@ -1,9 +1,8 @@
 ﻿using System.Security;
-using System.Xml;
 
 namespace pman.keepass;
 
-public class KeePassDb
+public class KeePassDb: IDisposable
 {
     internal const string FileCorrupted = "corrupted DB file";
     
@@ -30,11 +29,12 @@ public class KeePassDb
             throw new FormatException(FileCorrupted);
     }
 
-    public void Decrypt(SecureString password, string? keyFileName)
+    public KeePassPasswordDatabase Decrypt(SecureString password, string? keyFileName)
     {
         var credentials = new KeePassCredentials(password, keyFileName);
         password.Dispose();
         _header.Decrypt(credentials);
+        credentials.Dispose();
         int dataLength = 0;
         int blockNumber = 0;
         foreach (var dbBlock in _dbBlocks)
@@ -51,11 +51,9 @@ public class KeePassDb
         Array.Clear(decrypted, 0, decrypted.Length);
 
         _innerHeader = new KeePassInnerHeader(decompressed);
-        MemoryStream xmlStream = new MemoryStream(decompressed, _innerHeader.DataOffset,
-            decompressed.Length - _innerHeader.DataOffset);
-        XmlDocument document = new XmlDocument();
-        document.Load(xmlStream);
+        var database = KeePassPasswordDatabase.Create(decompressed, _innerHeader.DataOffset);
         Array.Clear(decompressed, 0, decompressed.Length);
+        return database;
     }
 
     public void PrintUnencryptedDbInfo(TextWriter writer)
@@ -71,5 +69,10 @@ public class KeePassDb
     {
         foreach (var field in _innerHeader!.HeaderFields)
             writer.WriteLine("Inner header field {0} size {1}", field.Key, field.Value.FieldData?.Length);
+    }
+    
+    public void Dispose()
+    {
+        _innerHeader?.Dispose();
     }
 }

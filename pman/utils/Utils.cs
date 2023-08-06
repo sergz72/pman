@@ -48,4 +48,12 @@ public class ProtectedBytes
         //Decrypt the data using DataProtectionScope.CurrentUser.
         return CrossProtect.Unprotect(_bytes, AdditionalEntropy, DataProtectionScope.CurrentUser);
     }
+
+    public string GetUnprotectedString()
+    {
+        var unprotected = Unprotect();
+        var result = Encoding.UTF8.GetString(unprotected);
+        Array.Clear(unprotected, 0, unprotected.Length);
+        return result;
+    }
 }

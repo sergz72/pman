@@ -1,6 +1,7 @@
 namespace pman.keepass;
 
-public class KeePassHeaderField<T> where T: Enum
+public class KeePassHeaderField<T>: IDisposable
+    where T: Enum
 {
     private const int HeaderLength = 5;
 
@@ -59,5 +60,11 @@ public class KeePassHeaderField<T> where T: Enum
         outOffset = offset;
         
         return headerFields;
+    }
+    
+    public void Dispose()
+    {
+        if (FieldData != null)
+            Array.Clear(FieldData, 0, FieldData.Length);
     }
 }

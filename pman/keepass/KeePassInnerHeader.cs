@@ -1,6 +1,6 @@
 namespace pman.keepass;
 
-public class KeePassInnerHeader
+public class KeePassInnerHeader: IDisposable
 {
     public enum HeaderFieldType
     {
@@ -17,5 +17,11 @@ public class KeePassInnerHeader
     {
         HeaderFields = KeePassHeaderField<HeaderFieldType>.ReadHeaderFields(bytes, 0, out var offset, "inner header", HeaderFieldType.EndOfHeader);
         DataOffset = offset;
+    }
+    
+    public void Dispose()
+    {
+        foreach (var field in HeaderFields.Values)
+            field.Dispose();
     }
 }

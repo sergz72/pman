@@ -53,6 +53,7 @@ int Start(KeePassDb database, SecureString password)
         database.Decrypt(password, null);
         Console.WriteLine("Database decrypted in {0} ms", stopWatch.ElapsedMilliseconds);
         database.PrintEncryptedDbInfo(Console.Out);
+        database.Dispose();
         return 0;
     }
     catch (Exception e)
