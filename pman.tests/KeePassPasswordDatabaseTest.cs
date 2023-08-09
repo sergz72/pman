@@ -24,4 +24,34 @@ public class KeePassPasswordDatabaseTest
             Assert.Fail("wrong offset");
         return tag;
     }
+
+    [Test]
+    public void TestSearch()
+    {
+        string xml = "<String><Key>aaa</Key><Value Protected=\"True\">bbb</Value></String>";
+        var offset = KeePassPasswordDatabase.Search(Encoding.UTF8.GetBytes(xml), 0, out var tag, true, "Value");
+        Assert.That(tag.Name, Is.EqualTo("Value"));
+        Assert.That(tag.Properties.Count, Is.EqualTo(1));
+        Assert.True(tag.Properties.ContainsKey("Protected"));
+        Assert.That(tag.Properties["Protected"], Is.EqualTo("True"));
+        Assert.That(offset, Is.EqualTo(xml.IndexOf("bbb")));
+    }
+    
+    [Test]
+    public void TestFindTags()
+    {
+        string xml = "\n<Key>aaa</Key>\n<Value Protected=\"True\">bbb</Value>\n</String>";
+        var offset = KeePassPasswordDatabase.FindTags(Encoding.UTF8.GetBytes(xml), 0, out var tags);
+        Assert.That(tags.Count, Is.EqualTo(2));
+        Assert.True(tags.ContainsKey("Key"));
+        Assert.True(tags.ContainsKey("Value"));
+        Assert.That(offset, Is.EqualTo(xml.IndexOf("</String") + 2));
+    }
+
+    [Test]
+    public void TestProcessContents()
+    {
+        var contents = File.ReadAllBytes("test.xml");
+        var db = KeePassPasswordDatabase.Create(contents, 0);
+    }
 }

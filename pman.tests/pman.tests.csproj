@@ -21,4 +21,17 @@
       <ProjectReference Include="..\pman\pman.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Update="KeePassPasswordDatabaseTest.cs">
+        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      </Compile>
+    </ItemGroup>
+
+
+    <ItemGroup>
+      <None Update="test.xml">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
