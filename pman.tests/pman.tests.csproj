@@ -22,7 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Update="KeePassPasswordDatabaseTest.cs">
+      <Compile Update="SecureXmlDocumentTest.cs">
         <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       </Compile>
     </ItemGroup>
