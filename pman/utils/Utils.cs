@@ -25,7 +25,7 @@ public static class Utils
     }
 }
 
-public class ProtectedBytes
+public class ProtectedBytes: IDisposable
 {
     private static readonly byte[] AdditionalEntropy = RandomNumberGenerator.GetBytes(32);
 
@@ -49,11 +49,13 @@ public class ProtectedBytes
         return CrossProtect.Unprotect(_bytes, AdditionalEntropy, DataProtectionScope.CurrentUser);
     }
 
+    public void Dispose()
+    {
+        Array.Clear(_bytes);
+    }
+
     public string GetUnprotectedString()
     {
-        var unprotected = Unprotect();
-        var result = Encoding.UTF8.GetString(unprotected);
-        Array.Clear(unprotected, 0, unprotected.Length);
-        return result;
+        return Encoding.UTF8.GetString(Unprotect());
     }
 }

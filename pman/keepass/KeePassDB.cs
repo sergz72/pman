@@ -2,13 +2,15 @@
 
 namespace pman.keepass;
 
-public class KeePassDb: IDisposable
+public class KeePassDb: IDisposable, IPasswordDatabase
 {
     internal const string FileCorrupted = "corrupted DB file";
+    private const string DatabaseIsNotOpen = "database is not open";
     
     private readonly KeePassDbHeader _header;
     private KeePassInnerHeader? _innerHeader;
     private readonly List<KeePassDbBlock> _dbBlocks;
+    private KeePassXmlDocument? _database;
     
     public KeePassDb(string fileName)
     {
@@ -29,7 +31,7 @@ public class KeePassDb: IDisposable
             throw new FormatException(FileCorrupted);
     }
 
-    public KeePassPasswordDatabase Decrypt(SecureString password, string? keyFileName)
+    public void Decrypt(SecureString password, string? keyFileName)
     {
         var credentials = new KeePassCredentials(password, keyFileName);
         password.Dispose();
@@ -51,9 +53,8 @@ public class KeePassDb: IDisposable
         Array.Clear(decrypted, 0, decrypted.Length);
 
         _innerHeader = new KeePassInnerHeader(decompressed);
-        var database = KeePassPasswordDatabase.Create(decompressed, _innerHeader.DataOffset);
+        _database = new KeePassXmlDocument(decompressed, _innerHeader.DataOffset);
         Array.Clear(decompressed, 0, decompressed.Length);
-        return database;
     }
 
     public void PrintUnencryptedDbInfo(TextWriter writer)
@@ -74,5 +75,36 @@ public class KeePassDb: IDisposable
     public void Dispose()
     {
         _innerHeader?.Dispose();
+        _database?.Dispose();
+    }
+
+    public bool IsReadOnly()
+    {
+        return true;
+    }
+
+    public Dictionary<string, int> GetGroups()
+    {
+        return _database?.GetGroups() ?? throw new FormatException(DatabaseIsNotOpen);
+    }
+
+    public HashSet<string> GetUsers()
+    {
+        return _database?.GetUsers() ?? throw new FormatException(DatabaseIsNotOpen);
+    }
+
+    public List<DatabaseSearchResult> GetGroupEntries(string group)
+    {
+        return _database?.GetGroupEntries(group) ?? throw new FormatException(DatabaseIsNotOpen);
+    }
+
+    public List<DatabaseSearchResult> GetEntries(string filter)
+    {
+        return _database?.GetEntries(filter) ?? throw new FormatException(DatabaseIsNotOpen);
+    }
+
+    public IPasswordDatabaseEntry GetEntry(string name)
+    {
+        return _database?.GetEntry(name) ?? throw new FormatException(DatabaseIsNotOpen);
     }
 }

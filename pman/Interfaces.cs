@@ -6,13 +6,13 @@ public interface IPasswordDatabase
 {
     bool IsReadOnly();
     
-    Dictionary<int, ProtectedBytes> GetGroups();
-    Dictionary<int, ProtectedBytes> GetUsers();
+    Dictionary<string, int> GetGroups();
+    HashSet<string> GetUsers();
 
-    IEnumerable<IPasswordDatabaseEntry> GetEntries();
-    
-    string GetUnprotectedString(ProtectedBytes value);
-    string GetUnprotectedPassword(ProtectedBytes value);
+    List<DatabaseSearchResult> GetGroupEntries(string group);
+    List<DatabaseSearchResult> GetEntries(string filter);
+
+    IPasswordDatabaseEntry GetEntry(string name);
 }
 
 public interface IPasswordDatabaseEntry
@@ -22,13 +22,15 @@ public interface IPasswordDatabaseEntry
     ProtectedBytes GetName();
     ProtectedBytes GetPassword();
     ProtectedBytes? GetUrl();
-    Dictionary<ProtectedBytes, ProtectedBytes> GetProperties();
+    Times GetTimes();
+    IEnumerable<string> GetProperties();
+    string GetProperty(string name);
 
-    void SetUserId(IPasswordDatabase db, int id);
-    void SetGroupId(IPasswordDatabase db, int id);
-    void SetName(IPasswordDatabase db, string name);
-    void SetPassword(IPasswordDatabase db, string password);
-    void SetUrl(IPasswordDatabase db, string url);
-    void SetProperty(IPasswordDatabase db, string name, string value);
-    void DeleteProperty(IPasswordDatabase db, string name);
+    void SetUserId(int id);
+    void SetGroupId(int id);
+    void SetName(string name);
+    void SetPassword(string password);
+    void SetUrl(string? url);
+    void SetProperty(string name, string value);
+    void DeleteProperty(string name);
 }

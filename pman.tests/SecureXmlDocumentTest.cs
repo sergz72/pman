@@ -6,9 +6,9 @@ namespace pman.tests;
 public class KeePassPasswordDatabaseTest
 {
     [Test]
-    public void TestProcessContents()
+    public void TestSecureXmlDocument()
     {
         var contents = File.ReadAllBytes("test.xml");
-        var document = new SecureXmlDocument(contents, 0);
+        var document = new SecureXmlDocument(contents, 0, null);
     }
 }
