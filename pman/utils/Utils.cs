@@ -25,7 +25,7 @@ public static class Utils
     }
 }
 
-public class ProtectedBytes: IDisposable
+public sealed class ProtectedBytes: IDisposable
 {
     private static readonly byte[] AdditionalEntropy = RandomNumberGenerator.GetBytes(32);
 

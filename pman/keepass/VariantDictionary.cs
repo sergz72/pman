@@ -2,9 +2,9 @@ using System.Text;
 
 namespace pman.keepass;
 
-public class VariantDictionary
+internal sealed class VariantDictionary
 {
-    public enum EntryType
+    internal enum EntryType
     {
         Uint32 = 4,
         Uint64 = 5,
@@ -15,10 +15,10 @@ public class VariantDictionary
         Array = 0x42
     }
     
-    public class Entry
+    internal class Entry
     {
-        public readonly EntryType Type;
-        public readonly byte[] Value;
+        internal readonly EntryType Type;
+        internal readonly byte[] Value;
 
         internal Entry(byte type, byte[] value)
         {
@@ -29,14 +29,14 @@ public class VariantDictionary
         }
     }
     
-    private readonly int Version;
+    private readonly int _version;
     internal readonly Dictionary<string, Entry> Entries;
 
     internal VariantDictionary(byte[] bytes)
     {
         int offset = 0;
-        Version = BitConverter.ToInt16(bytes, offset) >> 8;
-        if (Version != 1)
+        _version = BitConverter.ToInt16(bytes, offset) >> 8;
+        if (_version != 1)
             throw new FormatException("variant dictionary version must be 1");
         offset += 2;
         byte type = bytes[offset++];
@@ -68,23 +68,23 @@ public class VariantDictionary
         return e;
     }
     
-    public bool IsArray(string key, byte[] value)
+    internal bool IsArray(string key, byte[] value)
     {
         return CheckEntry(key, EntryType.Array, value.Length).Value.SequenceEqual(value);
     }
 
-    public uint AsUint32(string key)
+    internal uint AsUint32(string key)
     {
         var value = CheckEntry(key, EntryType.Uint32, 4).Value;
         return BitConverter.ToUInt32(value);
     }
 
-    public byte[] AsArray(string key, int size)
+    internal byte[] AsArray(string key, int size)
     {
         return CheckEntry(key, EntryType.Array, size).Value;
     }
 
-    public ulong AsUint64(string key)
+    internal ulong AsUint64(string key)
     {
         var value = CheckEntry(key, EntryType.Uint64, 8).Value;
         return BitConverter.ToUInt64(value);

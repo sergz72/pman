@@ -2,15 +2,15 @@ using System.Security.Cryptography;
 
 namespace pman.keepass;
 
-public class KeePassDbBlock
+internal sealed class KeePassDbBlock
 {
     private const int HmacHashLength = 32;
     internal const int HeaderLength = HmacHashLength + 4;
-    public readonly int Length;
+    internal readonly int Length;
     private readonly byte[] _hmac;
     private readonly byte[]? _data;
     
-    public KeePassDbBlock(byte[] bytes, int offset)
+    internal KeePassDbBlock(byte[] bytes, int offset)
     {
         _hmac = new byte[HmacHashLength];
         Array.Copy(bytes, offset, _hmac, 0, HmacHashLength);
@@ -24,7 +24,7 @@ public class KeePassDbBlock
         Array.Copy(bytes, dataOffset, _data, 0, dataLength);
     }
 
-    public int Validate(KeePassDbHeader header, long blockNumber)
+    internal int Validate(KeePassDbHeader header, long blockNumber)
     {
         var hmac256 = CalculateHmac256(header, blockNumber);
         if (!hmac256.SequenceEqual(_hmac))
@@ -45,9 +45,9 @@ public class KeePassDbBlock
         return hmacsha256.Hash!;
     }
 
-    public bool IsEmpty() => _data == null;
+    internal bool IsEmpty() => _data == null;
 
-    public byte[] Decrypt(KeePassDbHeader header)
+    internal byte[] Decrypt(KeePassDbHeader header)
     {
         return header.DecryptData(_data!);
     }

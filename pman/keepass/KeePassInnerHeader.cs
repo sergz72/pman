@@ -1,8 +1,8 @@
 namespace pman.keepass;
 
-public class KeePassInnerHeader: IDisposable
+internal sealed class KeePassInnerHeader: IDisposable
 {
-    public enum HeaderFieldType
+    internal enum HeaderFieldType
     {
         EndOfHeader = 0,
         InnerRandomStreamId = 1,
@@ -13,7 +13,7 @@ public class KeePassInnerHeader: IDisposable
     internal readonly Dictionary<HeaderFieldType, KeePassHeaderField<HeaderFieldType>> HeaderFields;
     internal readonly int DataOffset;
     
-    public KeePassInnerHeader(byte[] bytes)
+    internal KeePassInnerHeader(byte[] bytes)
     {
         HeaderFields = KeePassHeaderField<HeaderFieldType>.ReadHeaderFields(bytes, 0, out var offset, "inner header", HeaderFieldType.EndOfHeader);
         DataOffset = offset;

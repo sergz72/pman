@@ -2,7 +2,7 @@
 
 namespace pman.keepass;
 
-public class KeePassDb: IDisposable, IPasswordDatabase
+public sealed class KeePassDb: IDisposable, IPasswordDatabase
 {
     internal const string FileCorrupted = "corrupted DB file";
     private const string DatabaseIsNotOpen = "database is not open";
@@ -53,10 +53,15 @@ public class KeePassDb: IDisposable, IPasswordDatabase
         Array.Clear(decrypted, 0, decrypted.Length);
 
         _innerHeader = new KeePassInnerHeader(decompressed);
-        _database = new KeePassXmlDocument(decompressed, _innerHeader.DataOffset);
+        _database = new KeePassXmlDocument(decompressed, _innerHeader.DataOffset, Decrypter);
         Array.Clear(decompressed, 0, decompressed.Length);
     }
 
+    private void Decrypter(byte[] value)
+    {
+        
+    }
+    
     public void PrintUnencryptedDbInfo(TextWriter writer)
     {
         writer.WriteLine("Database version: {0}.{1}", _header.VersionMajor, _header.VersionMinor);

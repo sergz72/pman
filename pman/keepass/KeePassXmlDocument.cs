@@ -1,11 +1,14 @@
+using pman.utils;
+
 namespace pman.keepass;
 
-public class KeePassXmlDocument: IDisposable, IPasswordDatabase
+public sealed class KeePassXmlDocument: IDisposable, IPasswordDatabase
 {
-    private const string UserNameKey = "UserName";
+    internal const string UserNameKey = "UserName";
     private const string TitleKey = "Title";
+    private const string Protected = "Protected";
 
-    public class KeePassXmlDocumentException: Exception
+    internal class KeePassXmlDocumentException: Exception
     {
         public KeePassXmlDocumentException(string message) : base(message)
         {
@@ -13,14 +16,20 @@ public class KeePassXmlDocument: IDisposable, IPasswordDatabase
     }
     
     private readonly SecureXmlDocument _document;
-    public KeePassXmlDocument(byte[] contents, int offset)
+    private readonly Action<byte[]>? _decrypter;
+    
+    public KeePassXmlDocument(byte[] contents, int offset, Action<byte[]>? decrypter)
     {
+        _decrypter = decrypter;
         _document = new SecureXmlDocument(contents, offset, DecryptValue);
     }
 
     private void DecryptValue(byte[] value, Dictionary<string, string> properties)
     {
-        
+        if (_decrypter == null) return;
+        if (!properties.TryGetValue(Protected, out var protectedProperty)) return;
+        if (protectedProperty.ToLower() != "true") return;
+        _decrypter.Invoke(value);
     }
     
     public bool IsReadOnly()
@@ -28,10 +37,13 @@ public class KeePassXmlDocument: IDisposable, IPasswordDatabase
         return true;
     }
 
+    private IEnumerable<SecureXmlDocument.XmlTag> GetAllGroups() =>
+        _document.FindAll("KeePassFile", "Root", "Group", "Group");
+
     public Dictionary<string, int> GetGroups()
     {
         var result = new Dictionary<string, int>();
-        foreach (var group in _document.FindAll("KeePassFile", "Root", "Group", "Group"))
+        foreach (var group in GetAllGroups())
         {
             var value = group.GetChildValue("Name").GetUnprotectedString();
             if (result.ContainsKey(value))
@@ -44,7 +56,7 @@ public class KeePassXmlDocument: IDisposable, IPasswordDatabase
     public HashSet<string> GetUsers()
     {
         var result = new HashSet<string>();
-        foreach (var group in _document.FindAll("KeePassFile", "Root", "Group", "Group"))
+        foreach (var group in GetAllGroups())
         {
             foreach (var entry in group.FindAll("Group", "Entry"))
             {
@@ -58,8 +70,7 @@ public class KeePassXmlDocument: IDisposable, IPasswordDatabase
 
     public List<DatabaseSearchResult> GetGroupEntries(string groupName)
     {
-        var group = _document
-            .FindAll("KeePassFile", "Root", "Group", "Group")
+        var group = GetAllGroups()
             .First(group => group.GetChildValue("Name").GetUnprotectedString() == groupName);
         var result = new List<DatabaseSearchResult>();
         foreach (var entry in group.FindAll("Group", "Entry"))
@@ -74,12 +85,37 @@ public class KeePassXmlDocument: IDisposable, IPasswordDatabase
 
     public List<DatabaseSearchResult> GetEntries(string filter)
     {
-        throw new NotImplementedException();
+        var result = new List<DatabaseSearchResult>();
+        foreach (var group in GetAllGroups())
+        {
+            var groupName = group.GetChildValue("Name").GetUnprotectedString();
+            foreach (var entry in group.FindAll("Group", "Entry"))
+            {
+                var title = entry.FindAll("Entry", "String")
+                    .First(s => s.GetChildValue("Key").GetUnprotectedString() == TitleKey)
+                    .GetChildValue("Value").GetUnprotectedString();
+                if (title.Contains(filter))
+                    result.Add(new DatabaseSearchResult(groupName, title));
+            }
+        }
+        return result;
     }
 
     public IPasswordDatabaseEntry GetEntry(string name)
     {
-        throw new NotImplementedException();
+        foreach (var group in GetAllGroups())
+        {
+            var groupName = group.GetChildValue("Name").GetUnprotectedString();
+            foreach (var entry in group.FindAll("Group", "Entry"))
+            {
+                var title = entry.FindAll("Entry", "String")
+                    .First(s => s.GetChildValue("Key").GetUnprotectedString() == TitleKey)
+                    .GetChildValue("Value").GetUnprotectedString();
+                if (title == name)
+                    return new KeePassDatabaseEntry(entry);
+            }
+        }
+        throw new KeePassXmlDocumentException("entry not found");
     }
 
     public void Dispose()

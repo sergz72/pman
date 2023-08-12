@@ -3,7 +3,7 @@ using pman.utils;
 
 namespace pman.keepass;
 
-public class KeePassDbHeader
+internal sealed class KeePassDbHeader
 {
     private static readonly byte[] Minus1 = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 
@@ -13,7 +13,7 @@ public class KeePassDbHeader
         0xBE, 0x58, 0x05, 0x21, 0x6A, 0xFC, 0x5A, 0xFF
     };
 
-    public enum HeaderFieldType
+    internal enum HeaderFieldType
     {
         EndOfHeader = 0,
         Comment = 1,
@@ -190,7 +190,7 @@ public class KeePassDbHeader
         return hmacsha256.ComputeHash(_data, 0, _data.Length);
     }
 
-    public byte[] TransformHmacKey(byte[] bytes)
+    internal byte[] TransformHmacKey(byte[] bytes)
     {
         var sha = SHA512.Create();
         sha.TransformBlock(bytes, 0, bytes.Length, null, 0);
@@ -205,12 +205,12 @@ public class KeePassDbHeader
         return SHA256.HashData(_data);
     }
 
-    public byte[] DecryptData(byte[] bytes)
+    internal byte[] DecryptData(byte[] bytes)
     {
         return _encryptionEngine.Decrypt(bytes);
     }
     
-    public byte[] Decompress(byte[] bytes)
+    internal byte[] Decompress(byte[] bytes)
     {
         return _compressionEngine.Decompress(bytes);
     }

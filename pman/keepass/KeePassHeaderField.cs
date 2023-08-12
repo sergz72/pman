@@ -1,27 +1,27 @@
 namespace pman.keepass;
 
-public class KeePassHeaderField<T>: IDisposable
+internal sealed class KeePassHeaderField<T>: IDisposable
     where T: Enum
 {
     private const int HeaderLength = 5;
 
-    public readonly T FieldType;
-    public readonly byte[]? FieldData;
+    private readonly T _fieldType;
+    internal readonly byte[]? FieldData;
 
-    internal int Length { get; private set; }
+    private int _length;
 
-    internal KeePassHeaderField(byte[] bytes, int offset)
+    private KeePassHeaderField(byte[] bytes, int offset)
     {
-        FieldType = ValidateFieldType(bytes[offset]);
-        Length = 1;
-        var size = ReadFieldSize(bytes, offset + Length);
+        _fieldType = ValidateFieldType(bytes[offset]);
+        _length = 1;
+        var size = ReadFieldSize(bytes, offset + _length);
         if (size == 0)
             return;
         if (offset + size > bytes.Length)
             throw new FormatException(KeePassDb.FileCorrupted);
         FieldData = new byte[size];
-        Array.Copy(bytes, offset + Length, FieldData, 0, size);
-        Length += size;
+        Array.Copy(bytes, offset + _length, FieldData, 0, size);
+        _length += size;
     }
 
     private static T ValidateFieldType(byte b)
@@ -36,25 +36,25 @@ public class KeePassHeaderField<T>: IDisposable
     private int ReadFieldSize(byte[] bytes, int offset)
     {
         var size = BitConverter.ToInt32(bytes, offset);
-        Length += 4;
+        _length += 4;
         if (size < 0)
             throw new FormatException(KeePassDb.FileCorrupted);
         return size;
     }
 
-    public static Dictionary<T, KeePassHeaderField<T>> ReadHeaderFields(byte[] bytes, int offset, out int outOffset, string headerName, T endOfHeader)
+    internal static Dictionary<T, KeePassHeaderField<T>> ReadHeaderFields(byte[] bytes, int offset, out int outOffset, string headerName, T endOfHeader)
     {
         var headerFields = new Dictionary<T, KeePassHeaderField<T>>();
         var maxLength = bytes.Length - HeaderLength;
         while (offset <= maxLength)
         {
             var field = new KeePassHeaderField<T>(bytes, offset);
-            offset += field.Length;
-            if (field.FieldType.Equals(endOfHeader))
+            offset += field._length;
+            if (field._fieldType.Equals(endOfHeader))
                 break;
-            if (headerFields.ContainsKey(field.FieldType))
+            if (headerFields.ContainsKey(field._fieldType))
                 throw new FormatException($"duplicate {headerName} field type");
-            headerFields[field.FieldType] = field;
+            headerFields[field._fieldType] = field;
         }
 
         outOffset = offset;

@@ -1,6 +1,6 @@
 namespace pman.keepass;
 
-public class NoCompressionEngine: ICompressionEngine
+internal sealed class NoCompressionEngine: ICompressionEngine
 {
     public byte[] Decompress(byte[] bytes)
     {

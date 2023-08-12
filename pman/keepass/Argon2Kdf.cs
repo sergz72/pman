@@ -2,7 +2,7 @@ using Isopoh.Cryptography.Argon2;
 
 namespace pman.keepass;
 
-public class Argon2Kdf: IKeyDerivationFunction
+internal sealed class Argon2Kdf: IKeyDerivationFunction
 {
     private static readonly byte[] Argon2Duuid =
     {
@@ -18,7 +18,7 @@ public class Argon2Kdf: IKeyDerivationFunction
 
     private readonly Argon2Config _config;
     
-    public Argon2Kdf(VariantDictionary kdfParameters)
+    internal Argon2Kdf(VariantDictionary kdfParameters)
     {
         _config = new Argon2Config
         {

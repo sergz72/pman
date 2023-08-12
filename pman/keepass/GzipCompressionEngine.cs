@@ -2,7 +2,7 @@ using System.IO.Compression;
 
 namespace pman.keepass;
 
-public class GzipCompressionEngine: ICompressionEngine
+internal sealed class GzipCompressionEngine: ICompressionEngine
 {
     public byte[] Decompress(byte[] bytes)
     {

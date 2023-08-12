@@ -4,11 +4,11 @@ using pman.utils;
 
 namespace pman.keepass;
 
-public class KeePassCredentials: IDisposable
+internal sealed class KeePassCredentials: IDisposable
 {
-    public readonly byte[] Key;
+    internal readonly byte[] Key;
     
-    public KeePassCredentials(SecureString password, string? keyFileName)
+    internal KeePassCredentials(SecureString password, string? keyFileName)
     {
         var bytes = Utils.SecureStringToByteArray(password);
         var keyHash = SHA256.HashData(bytes);

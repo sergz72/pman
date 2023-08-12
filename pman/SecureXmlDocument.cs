@@ -16,7 +16,7 @@ public sealed class SecureXmlDocument : IDisposable
     private const string PathNotFound = "path not found";
     private const string MoreThanOneKeyFound = "more than one key found";
 
-    public class SecureXmlDocumentException: Exception
+    private class SecureXmlDocumentException: Exception
     {
         public SecureXmlDocumentException(string message) : base(message)
         {
@@ -189,7 +189,7 @@ public sealed class SecureXmlDocument : IDisposable
                 children.ForEach(child => child.Dispose());
         }
 
-        public IEnumerable<XmlTag> FindAll(params string[] path)
+        public List<XmlTag> FindAll(params string[] path)
         {
             switch (path.Length)
             {
@@ -199,7 +199,7 @@ public sealed class SecureXmlDocument : IDisposable
                     if (path[0] != Name)
                         throw new SecureXmlDocumentException(PathNotFound);
                     if (path.Length == 1)
-                        return new[] { this };
+                        return new List<XmlTag> { this };
                     if (Children.TryGetValue(path[1], out var tags))
                     {
                         if (path.Length == 2)
@@ -251,7 +251,7 @@ public sealed class SecureXmlDocument : IDisposable
         Root.Dispose();
     }
 
-    public IEnumerable<XmlTag> FindAll(params string[] path)
+    public List<XmlTag> FindAll(params string[] path)
     {
         return Root.FindAll(path);
     }
