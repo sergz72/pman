@@ -1,6 +1,6 @@
 namespace pman.crypto;
 
-public class ChaCha20
+public class ChaCha20: IDisposable
 {
     private static readonly uint[] Magic =
     {
@@ -110,5 +110,11 @@ public class ChaCha20
                 l--;
             }
         }
+    }
+
+    public void Dispose()
+    {
+        Array.Clear(_keystream);
+        Array.Clear(_state);
     }
 }

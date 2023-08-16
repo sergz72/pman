@@ -59,5 +59,6 @@ internal sealed class KeePassInnerHeader: IDisposable
     {
         foreach (var field in HeaderFields.Values)
             field.Dispose();
+        _decryptor.Dispose();
     }
 }
