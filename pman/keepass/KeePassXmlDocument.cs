@@ -1,3 +1,6 @@
+using System.Buffers.Text;
+using System.Security.Cryptography;
+using System.Text;
 using pman.utils;
 
 namespace pman.keepass;
@@ -29,7 +32,9 @@ public sealed class KeePassXmlDocument: IDisposable, IPasswordDatabase
         if (_decrypter == null) return;
         if (!properties.TryGetValue(Protected, out var protectedProperty)) return;
         if (protectedProperty.ToLower() != "true") return;
-        _decrypter.Invoke(value);
+        var s = Encoding.UTF8.GetString(value);
+        var b = Convert.FromBase64String(s);
+        _decrypter.Invoke(b);
     }
     
     public bool IsReadOnly()

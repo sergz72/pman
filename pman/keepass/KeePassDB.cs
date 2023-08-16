@@ -53,13 +53,8 @@ public sealed class KeePassDb: IDisposable, IPasswordDatabase
         Array.Clear(decrypted, 0, decrypted.Length);
 
         _innerHeader = new KeePassInnerHeader(decompressed);
-        _database = new KeePassXmlDocument(decompressed, _innerHeader.DataOffset, Decrypter);
+        _database = new KeePassXmlDocument(decompressed, _innerHeader.DataOffset, _innerHeader.Decrypt);
         Array.Clear(decompressed, 0, decompressed.Length);
-    }
-
-    private void Decrypter(byte[] value)
-    {
-        
     }
     
     public void PrintUnencryptedDbInfo(TextWriter writer)
