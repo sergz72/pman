@@ -28,14 +28,15 @@ public sealed class KeePassXmlDocument: IDisposable, IPasswordDatabase
         _document = new SecureXmlDocument(contents, offset, DecryptValue);
     }
 
-    private void DecryptValue(byte[] value, Dictionary<string, string> properties)
+    private byte[] DecryptValue(byte[] value, Dictionary<string, string> properties)
     {
-        if (_decrypter == null) return;
-        if (!properties.TryGetValue(Protected, out var protectedProperty)) return;
-        if (protectedProperty.ToLower() != "true") return;
+        if (_decrypter == null) return value;
+        if (!properties.TryGetValue(Protected, out var protectedProperty)) return value;
+        if (protectedProperty.ToLower() != "true") return value;
         var s = Encoding.UTF8.GetString(value);
         var b = Convert.FromBase64String(s);
         _decrypter.Invoke(b);
+        return b;
     }
     
     public bool IsReadOnly()

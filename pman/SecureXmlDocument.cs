@@ -34,7 +34,7 @@ public sealed class SecureXmlDocument : IDisposable
         private int _offset;
         private readonly byte[] _nameBytes;
     
-        public XmlTag(byte[] contents, int offset, Action<byte[], Dictionary<string, string>>? valueDecryptor)
+        public XmlTag(byte[] contents, int offset, Func<byte[], Dictionary<string, string>, byte[]>? valueDecryptor)
         {
             _contents = contents;
             _offset = offset;
@@ -69,8 +69,8 @@ public sealed class SecureXmlDocument : IDisposable
             var l = _offset - valueOffset - 1;
             var value = new byte[l];
             Array.Copy(_contents, valueOffset, value, 0, l);
-            valueDecryptor?.Invoke(value, Properties);
-            Value = ProtectedBytes.Protect(value);
+            var decrypted = valueDecryptor?.Invoke(value, Properties) ?? value;
+            Value = ProtectedBytes.Protect(decrypted);
             Array.Clear(value);
 
             // children
@@ -227,7 +227,7 @@ public sealed class SecureXmlDocument : IDisposable
 
     public readonly XmlTag Root;
 
-    public SecureXmlDocument(byte[] contents, int offset, Action<byte[], Dictionary<string, string>>? valueDecryptor)
+    public SecureXmlDocument(byte[] contents, int offset, Func<byte[], Dictionary<string, string>, byte[]>? valueDecryptor)
     {
         if (offset + 7 >= contents.Length)
             throw new SecureXmlDocumentException(TooShortData);
