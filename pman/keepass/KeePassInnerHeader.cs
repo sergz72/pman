@@ -43,10 +43,15 @@ internal sealed class KeePassInnerHeader: IDisposable
         if (streamKey.FieldData is not { Length: 64 })
             throw new FormatException("inner header stream key is wrong");
         var hash = System.Security.Cryptography.SHA512.HashData(streamKey.FieldData);
+
+        foreach (var field in HeaderFields.Values)
+            field.Dispose();
+        
         var key = new byte[32];
         var iv = new byte[12];
         Array.Copy(hash, 0, key, 0, key.Length);
         Array.Copy(hash, key.Length, iv, 0, iv.Length);
+        
         return new ChaCha20(key, iv);
     }
 
@@ -57,8 +62,6 @@ internal sealed class KeePassInnerHeader: IDisposable
 
     public void Dispose()
     {
-        foreach (var field in HeaderFields.Values)
-            field.Dispose();
         _decryptor.Dispose();
     }
 }

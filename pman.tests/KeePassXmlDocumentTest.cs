@@ -24,8 +24,6 @@ public class KeePassXmlDocumentTest
         entries = document.GetEntries("#2");
         Assert.That(entries, Has.Count.EqualTo(1));
         Assert.That(entries[0], Is.EqualTo(new DatabaseSearchResult("Windows", "Sample Entry #2")));
-
-        var entry = document.GetEntry("Sample Entry");
         
         var users = document.GetUsers();
         Assert.That(users, Has.Count.EqualTo(2));

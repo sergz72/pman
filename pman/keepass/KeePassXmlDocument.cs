@@ -23,6 +23,7 @@ public sealed class KeePassXmlDocument: IDisposable, IPasswordDatabase
     
     public KeePassXmlDocument(byte[] contents, int offset, Action<byte[]>? decrypter)
     {
+        //string s = Encoding.UTF8.GetString(contents, offset, contents.Length - offset);
         _decrypter = decrypter;
         _document = new SecureXmlDocument(contents, offset, DecryptValue);
     }

@@ -1,4 +1,4 @@
-using Isopoh.Cryptography.Argon2;
+using System.Security.Cryptography;
 
 namespace pman.keepass;
 
@@ -16,37 +16,25 @@ internal sealed class Argon2Kdf: IKeyDerivationFunction
         0xB2, 0x3D, 0xFC, 0x3E, 0xC6, 0xF0, 0xA1, 0xE6
     };
 
-    private readonly Argon2Config _config;
+    private readonly Argon2PasswordHasher _hasher;
+    private readonly byte[] _salt;
     
     internal Argon2Kdf(VariantDictionary kdfParameters)
     {
-        _config = new Argon2Config
-        {
-            Version = (Argon2Version)kdfParameters.AsUint32("V"),
-            Salt = kdfParameters.AsArray("S", -1),
-            Lanes = (int)kdfParameters.AsUint32("P"),
-            MemoryCost = (int)kdfParameters.AsUint64("M") / 1024,
-            TimeCost = (int)kdfParameters.AsUint64("I"),
-            Threads = Environment.ProcessorCount,
-            HashLength = 32,
-            ClearSecret = true,
-            ClearPassword = true
-        };
-        if (kdfParameters.IsArray("$UUID", Argon2Duuid))
-            _config.Type = Argon2Type.DataDependentAddressing;
-        else
-        {
-            if (kdfParameters.IsArray("$UUID", Argon2Iduuid))
-                _config.Type = Argon2Type.HybridAddressing;
-            else
-                throw new FormatException("unsupported key derivation function");
-        }
+        var t = kdfParameters.IsArray("$UUID", Argon2Duuid) ? Argon2Type.Argon2d : 
+            kdfParameters.IsArray("$UUID", Argon2Iduuid) ? Argon2Type.Argon2id :
+            throw new FormatException("unsupported key derivation function");
+        if (kdfParameters.AsUint32("V") != 19)
+            throw new FormatException("unsupported Argon2 version");
+        _salt = kdfParameters.AsArray("S", -1);
+        _hasher = new Argon2PasswordHasher((uint)kdfParameters.AsUint64("I"), (uint)(kdfParameters.AsUint64("M") / 1024),
+            kdfParameters.AsUint32("P"), t, 32, (uint)_salt.Length);
     }
 
     public byte[] GetTransformedKey(byte[] digest)
     {
-        _config.Password = digest;
-        var hasher = new Argon2(_config);
-        return hasher.Hash().Buffer;
+        var buffer = new byte[32];
+        _hasher.Hash(digest, new ReadOnlySpan<byte>(_salt), new Span<byte>(buffer));
+        return buffer;
     }
 }

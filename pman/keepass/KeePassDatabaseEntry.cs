@@ -4,6 +4,12 @@ namespace pman.keepass;
 
 internal sealed class KeePassDatabaseEntry: IPasswordDatabaseEntry
 {
+    private const string PasswordKey = "Password";
+    private const string UrlKey = "URL";
+    
+    private readonly ProtectedBytes _password;
+    private readonly ProtectedBytes? _userName;
+    private readonly ProtectedBytes? _url;
     private readonly Dictionary<string, ProtectedBytes> _properties;
     internal KeePassDatabaseEntry(SecureXmlDocument.XmlTag entry)
     {
@@ -17,22 +23,28 @@ internal sealed class KeePassDatabaseEntry: IPasswordDatabaseEntry
                 throw new KeePassXmlDocument.KeePassXmlDocumentException("duplicate entry string key");
             _properties[key] = value;
         }
+        if (!_properties.TryGetValue(PasswordKey, out _password))
+            throw new KeePassXmlDocument.KeePassXmlDocumentException("database entry has no password property");
+        _properties.Remove(PasswordKey);
+        if (_properties.TryGetValue(KeePassXmlDocument.UserNameKey, out _userName))
+            _properties.Remove(KeePassXmlDocument.UserNameKey);
+        if (_properties.TryGetValue(UrlKey, out _url))
+            _properties.Remove(UrlKey);
     }
 
-    public ProtectedBytes GetUserName()
+    public ProtectedBytes? GetUserName()
     {
-        return _properties[KeePassXmlDocument.UserNameKey];
+        return _userName;
     }
 
     public ProtectedBytes GetPassword()
     {
-        return _properties["Password"];
+        return _password;
     }
 
     public ProtectedBytes? GetUrl()
     {
-        _properties.TryGetValue("URL", out var url);
-        return url;
+        return _url;
     }
 
     public Times GetTimes()

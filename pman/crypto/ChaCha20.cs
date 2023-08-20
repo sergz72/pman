@@ -1,7 +1,11 @@
+using System.Text;
+
 namespace pman.crypto;
 
 public class ChaCha20: IDisposable
 {
+    private const int KeyStreamLengthBytes = 64;
+    
     private static readonly uint[] Magic =
     {
         1634760805U,
@@ -36,7 +40,7 @@ public class ChaCha20: IDisposable
         _state[15] = BitConverter.ToUInt32(iv, 8);
         
         _keystream = new uint[16];
-        _position = _keystream.Length;
+        _position = KeyStreamLengthBytes;
     }
 
     private static uint RotL32(uint x, int n)
@@ -97,19 +101,20 @@ public class ChaCha20: IDisposable
         var offset = 0;
         while (offset < data.Length)
         {
-            if (_position == _keystream.Length)
+            if (_position == KeyStreamLengthBytes)
             {
                 NextBlock();
                 _position = 0;
             }
 
-            var l = Math.Min(_keystream.Length - _position, data.Length - offset);
+            var l = Math.Min(KeyStreamLengthBytes - _position, data.Length - offset);
             while (l > 0)
             {
                 data[offset++] ^= GetKeyStreamByte();
                 l--;
             }
         }
+        //Console.WriteLine(Encoding.UTF8.GetString(data));
     }
 
     public void Dispose()

@@ -17,7 +17,7 @@ public interface IPasswordDatabase
 
 public interface IPasswordDatabaseEntry
 {
-    ProtectedBytes GetUserName();
+    ProtectedBytes? GetUserName();
     ProtectedBytes GetPassword();
     ProtectedBytes? GetUrl();
     Times GetTimes();
