@@ -30,6 +30,8 @@ public class KeePassXmlDocumentTest
         Assert.That(user, Is.EqualTo("user3"));
         var password = entry.GetPassword().GetUnprotectedString();
         Assert.That(password, Is.EqualTo("1/ON9b7WBFou/rljK0Lq/eyZKxI="));
+        var notes = entry.GetProperty("Notes");
+        Assert.That(notes, Is.EqualTo("<note4>"));
 
         var users = document.GetUsers();
         Assert.That(users, Has.Count.EqualTo(5));

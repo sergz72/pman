@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text;
 using pman.utils;
 
@@ -15,6 +16,7 @@ public sealed class SecureXmlDocument : IDisposable
     private const string XmlTagExpected = "XML tag expected";
     private const string PathNotFound = "path not found";
     private const string MoreThanOneKeyFound = "more than one key found";
+    private const string InvalidSpecialCharacter = "invalid special character in value";
 
     private class SecureXmlDocumentException: Exception
     {
@@ -69,7 +71,8 @@ public sealed class SecureXmlDocument : IDisposable
             var l = _offset - valueOffset - 1;
             var value = new byte[l];
             Array.Copy(_contents, valueOffset, value, 0, l);
-            var decrypted = valueDecryptor?.Invoke(value, Properties) ?? value;
+            var cleanValue = Cleanup(value); 
+            var decrypted = valueDecryptor?.Invoke(cleanValue, Properties) ?? cleanValue;
             Value = ProtectedBytes.Protect(decrypted);
             Array.Clear(value);
 
@@ -89,6 +92,67 @@ public sealed class SecureXmlDocument : IDisposable
             }
         }
 
+        public static byte[] Cleanup(byte[] value)
+        {
+            var result = new List<byte>();
+            for (var i = 0; i < value.Length; i++)
+            {
+                var b = value[i];
+                if (b == '&')
+                {
+                    if (i + 3 >= value.Length)
+                        throw new SecureXmlDocumentException(InvalidSpecialCharacter);
+                    i++;
+                    switch ((char)value[i])
+                    {
+                        case 'a':
+                            i++;
+                            switch ((char)value[i])
+                            {
+                                case 'p':
+                                    if (i + 3 >= value.Length || value[i+1] != 'o' || value[i+2] != 's' || value[i+3] != ';')
+                                        throw new SecureXmlDocumentException(InvalidSpecialCharacter);
+                                    result.Add((byte)'`');
+                                    i += 3;
+                                    break;
+                                case 'm':
+                                    if (i + 2 >= value.Length || value[i+1] != 'p' || value[i+2] != ';')
+                                        throw new SecureXmlDocumentException(InvalidSpecialCharacter);
+                                    result.Add((byte)'&');
+                                    i += 2;
+                                    break;
+                                default:
+                                    throw new SecureXmlDocumentException(InvalidSpecialCharacter);
+                            }
+                            break;
+                        case 'g':
+                            if (value[i+1] != 't' || value[i+2] != ';')
+                                throw new SecureXmlDocumentException(InvalidSpecialCharacter);
+                            result.Add((byte)'>');
+                            i += 2;
+                            break;
+                        case 'l':
+                            if (value[i+1] != 't' || value[i+2] != ';')
+                                throw new SecureXmlDocumentException(InvalidSpecialCharacter);
+                            result.Add((byte)'<');
+                            i += 2;
+                            break;
+                        case 'q':
+                            if (i + 4 >= value.Length || value[i+1] != 'u' || value[i+2] != 'o' || value[i+3] != 't' || value[i+4] != ';')
+                                throw new SecureXmlDocumentException(InvalidSpecialCharacter);
+                            result.Add((byte)'"');
+                            i += 4;
+                            break;
+                        default:
+                            throw new SecureXmlDocumentException(InvalidSpecialCharacter);
+                    }
+                }
+                else
+                    result.Add(b);
+            }
+            return result.ToArray();
+        }
+        
         private bool IsTagEnd()
         {
             if (_contents[_offset] == '/')
