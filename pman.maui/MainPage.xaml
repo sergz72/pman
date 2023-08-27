@@ -1,0 +1,155 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:pman.maui"
+             x:DataType="local:MainViewModel"
+             x:Class="pman.maui.MainPage"
+             Title="Password manager">
+    <ContentPage.MenuBarItems>
+        <MenuBarItem Text="File">
+            <MenuFlyoutItem Text="Open" Clicked="OpenCommand" />
+        </MenuBarItem>
+    </ContentPage.MenuBarItems>
+     <ContentPage.BindingContext>
+        <local:MainViewModel/>
+    </ContentPage.BindingContext>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="{OnPlatform WinUI=0, Default=*, MacCatalyst=0}"/>
+            <RowDefinition Height="{OnPlatform WinUI=0, Default=2*, MacCatalyst=0}"/>
+        </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="{OnPlatform WinUI=*, Default=0, MacCatalyst=*}" />
+                <ColumnDefinition Width="{OnPlatform WinUI=2*, Default=0, MacCatalyst=2*}" />
+            </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0" Grid.Row="0" BackgroundColor="AliceBlue">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="100" />
+            </Grid.ColumnDefinitions>
+            <Label Text="Databases" Style="{DynamicResource titleLabelStyle}" />
+            <Button Style="{DynamicResource addButtonStyle}"
+                    BackgroundColor="Green" Clicked="OpenCommand"/>
+            <CollectionView x:Name="dbView"
+                            x:FieldModifier="public"
+                            SelectionMode="Single"
+                            ItemsSource="{Binding PasswordDatabases}"
+                            Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                            SelectionChanged="DbView_SelectionChanged">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="local:PasswordDatabaseFile">
+                        <StackLayout>
+                            <Label Text="{Binding FullPath}"
+                                    FontSize="20"
+                                    VerticalOptions="Center" />
+                        </StackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+        <Label Grid.Column="{OnPlatform WinUI=1, Default=0, MacCatalyst=1}"
+               Grid.Row="{OnPlatform WinUI=0, Default=1, MacCatalyst=0}"
+               IsVisible="{Binding IsDBError}" FontSize="20" Text="{Binding DBError}"/>
+
+        <Grid Grid.Column="{OnPlatform WinUI=1, Default=0, MacCatalyst=1}"
+              Grid.Row="{OnPlatform WinUI=0, Default=1, MacCatalyst=0}"
+              Grid.ColumnSpan="{OnPlatform WinUI=2, Default=1, MacCatalyst=2}"
+              Grid.RowSpan="{OnPlatform WinUI=1, Default=2, MacCatalyst=1}"
+              IsVisible="{Binding IsDBPrepared}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Row="1" Grid.Column="0" Text="Master Password" FontSize="30"/>
+            <Entry x:Name="firstPassword" Grid.Row="1" Grid.Column="1"
+                   Grid.ColumnSpan="2" IsPassword="true" FontSize="30"/>
+            <Label Grid.Row="2" Grid.Column="0" Text="Second Password" FontSize="30"/>
+            <Entry x:Name="secondPassword" Grid.Row="2" Grid.Column="1"
+                   Grid.ColumnSpan="2" IsPassword="true" FontSize="30"/>
+            <Label Grid.Row="3" Grid.Column="0" Text="Key file" FontSize="30"/>
+            <Label x:Name="keyFile" Grid.Row="3" Grid.Column="1" Text="None"
+                   FontSize="30"/>
+            <Button Grid.Row="3" Grid.Column="2" Text="Select" FontSize="30"
+                    Clicked="SelectKeyFile" BackgroundColor="Green"/>
+            <Button Grid.Row="4" Grid.Column="0" Text="Open database" FontSize="30"
+                    Clicked="OpenDatabase" BackgroundColor="Green"
+                    Grid.ColumnSpan="3"/>
+        </Grid>
+        <Grid Grid.Column="{OnPlatform WinUI=1, Default=0, MacCatalyst=1}"
+              Grid.Row="{OnPlatform WinUI=0, Default=1, MacCatalyst=0}"
+              BackgroundColor="AntiqueWhite" IsVisible="{Binding IsDBOpen}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="100" />
+            </Grid.ColumnDefinitions>
+            <Label Text="Groups" Style="{DynamicResource titleLabelStyle}" />
+            <Button Style="{DynamicResource addButtonStyle}"
+                    BackgroundColor="Green" Clicked="AddGroup"/>
+            <CollectionView x:Name="groupsView"
+                            x:FieldModifier="public"
+                            SelectionMode="Single"
+                            ItemsSource="{Binding Groups}"
+                            Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="local:PasswordDatabaseGroup">
+                        <StackLayout>
+                            <Label Text="{Binding Name}"
+                                    FontSize="20"
+                                    VerticalOptions="Center" />
+                        </StackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+        <Grid Grid.Column="{OnPlatform WinUI=2, Default=0, MacCatalyst=2}"
+              Grid.Row="{OnPlatform WinUI=0, Default=2, MacCatalyst=0}"
+               IsVisible="{Binding IsDBOpen}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="100" />
+            </Grid.ColumnDefinitions>
+            <Label Text="Entities" Style="{DynamicResource titleLabelStyle}" />
+            <Button Style="{DynamicResource addButtonStyle}"
+                    BackgroundColor="Green" Clicked="AddEntity" />
+            <CollectionView x:Name="entitiesView"
+                            x:FieldModifier="public"
+                            SelectionMode="Single"
+                            ItemsSource="{Binding Entities}"
+                            Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="local:PasswordDatabaseEntity">
+                        <StackLayout>
+                            <Label Text="{Binding Name}"
+                                    FontSize="20"
+                                    VerticalOptions="Center" />
+                        </StackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    <Style x:Key="addButtonStyle" TargetType="Button">
+        <Setter Property="Text" Value="+" />
+        <Setter Property="FontSize" Value="{OnPlatform Default=30, Android=15}" />
+        <Setter Property="HorizontalOptions" Value="Fill" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="Grid.Row" Value="0" />
+        <Setter Property="Grid.Column" Value="1" />
+        <Setter Property="TextColor" Value="White"/>
+    </Style>
+    <Style x:Key="titleLabelStyle" TargetType="Label">
+        <Setter Property="FontSize" Value="30" />
+        <Setter Property="HorizontalOptions" Value="Fill" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="Grid.Row" Value="0" />
+        <Setter Property="Grid.Column" Value="0" />
+    </Style>
+</ResourceDictionary>
