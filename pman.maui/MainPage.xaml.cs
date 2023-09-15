@@ -18,7 +18,7 @@ public partial class MainPage
         var fileTypes = new Dictionary<DevicePlatform, IEnumerable<string>>()
         {
             { DevicePlatform.MacCatalyst, new []{"kdbx"}},
-            { DevicePlatform.iOS, new[] { "public.kdbx" } }, // UTType values
+            { DevicePlatform.iOS, new[] { "com.sz.pdbf" } }, // UTType values
             { DevicePlatform.Android, new[] { "application/*" } }, // MIME type
             { DevicePlatform.WinUI, new[] { ".kdbx" } }, // file extension
         };

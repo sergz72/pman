@@ -21,14 +21,29 @@ public class MainViewModel: INotifyPropertyChanged
     public bool IsDbError => _selectedDatabase?.IsError ?? false;
     public string? DbError => _selectedDatabase?.ErrorMessage ?? null;
 
-    public bool IsPortrait { get; set; }
+    private bool _isPortrait;
+
+    public bool IsLandscape => !_isPortrait;
     
+    public bool IsPortrait
+    {
+        get => _isPortrait;
+        set
+        {
+            if (value == _isPortrait) return;
+            _isPortrait = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsPortrait)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsLandscape)));
+        }
+    }
+
     public MainViewModel()
     {
         PasswordDatabases = new ObservableCollection<PasswordDatabaseFile>();
         Groups = new ObservableCollection<PasswordDatabaseGroup>();
         Entities = new ObservableCollection<PasswordDatabaseEntity>();
         _selectedDatabase = null;
+        _isPortrait = true;
     }
 
     internal void LoadPreferences()
