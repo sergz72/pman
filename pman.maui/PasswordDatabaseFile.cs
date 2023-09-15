@@ -6,9 +6,11 @@ public struct PasswordDatabaseFile
 {
     public string FullPath { get; }
     public bool IsOpen { get; private set; }
-    public readonly bool IsPrepared { get { return _passwordDatabase != null; } }
-    public readonly bool IsError { get { return ErrorMessage != null; } }
-
+    public readonly bool IsPrepared => _passwordDatabase != null;
+    public readonly bool IsError => ErrorMessage != null;
+    public bool SecondPasswordIsRequired { get; }
+    public bool KeyFileIsRequired { get; }
+    
     private readonly IPasswordDatabase? _passwordDatabase;
     public readonly string? ErrorMessage;
 
@@ -18,6 +20,8 @@ public struct PasswordDatabaseFile
         FullPath = fullPath;
         if (fullPath.EndsWith(".kdbx"))
         {
+            SecondPasswordIsRequired = false;
+            KeyFileIsRequired = true;
             try
             {
                 _passwordDatabase = new KeePassDb(fullPath);
@@ -28,21 +32,26 @@ public struct PasswordDatabaseFile
                 ErrorMessage = ex.Message;
             }
         }
+        else
+        {
+            SecondPasswordIsRequired = true;
+            KeyFileIsRequired = false;
+        }
     }
 
-    public override readonly int GetHashCode()
+    public readonly override int GetHashCode()
     {
         return FullPath.GetHashCode();
     }
 
-    public override readonly bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
     {
         if (obj is PasswordDatabaseFile db)
             return db.FullPath == FullPath;
         return false;
     }
 
-    public override readonly string ToString()
+    public readonly override string ToString()
     {
         return FullPath;
     }

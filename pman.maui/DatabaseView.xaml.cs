@@ -1,8 +1,8 @@
 namespace pman.maui;
 
-public partial class DBView
+public partial class DatabaseView
 {
-    public DBView()
+    public DatabaseView()
     {
         InitializeComponent();
     }

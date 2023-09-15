@@ -22,11 +22,14 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             
-            <local:DBView/>
+            <local:DatabaseView/>
             
             <Label Grid.Row="1" Grid.RowSpan="2" IsVisible="{Binding IsDbError}" FontSize="20" Text="{Binding DbError}"/>
 
-            <local:CredentialsForm Grid.Row="1" Grid.RowSpan="2" IsVisible="{Binding IsDbPrepared}"/>
+            <local:CredentialsForm Grid.Row="1" Grid.RowSpan="2"
+                                   IsVisible="{Binding IsDbPrepared}"
+                                   ShowSecondPassword="{Binding SecondPasswordIsRequired}"
+                                   ShowKeyFile="{Binding KeyFileIsRequired}"/>
 
             <local:GroupsView Grid.Row="1" IsVisible="{Binding IsDbOpen}"/>
 
@@ -39,11 +42,14 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             
-            <local:DBView/>
+            <local:DatabaseView/>
             
             <Label Grid.Column="1" Grid.ColumnSpan="2" IsVisible="{Binding IsDbError}" FontSize="20" Text="{Binding DbError}"/>
 
-            <local:CredentialsForm Grid.Column="1" Grid.ColumnSpan="2" IsVisible="{Binding IsDbPrepared}"/>
+            <local:CredentialsForm Grid.Column="1" Grid.ColumnSpan="2"
+                                   IsVisible="{Binding IsDbPrepared}"
+                                   ShowSecondPassword="{Binding SecondPasswordIsRequired}"
+                                   ShowKeyFile="{Binding KeyFileIsRequired}"/>
 
             <local:GroupsView Grid.Column="1" IsVisible="{Binding IsDbOpen}"/>
 

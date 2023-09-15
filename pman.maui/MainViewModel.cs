@@ -20,7 +20,9 @@ public class MainViewModel: INotifyPropertyChanged
     public bool IsDbPrepared => _selectedDatabase?.IsPrepared ?? false;
     public bool IsDbError => _selectedDatabase?.IsError ?? false;
     public string? DbError => _selectedDatabase?.ErrorMessage ?? null;
-
+    public bool SecondPasswordIsRequired => _selectedDatabase?.SecondPasswordIsRequired ?? false;
+    public bool KeyFileIsRequired => _selectedDatabase?.KeyFileIsRequired ?? false;
+    
     private bool _isPortrait;
 
     public bool IsLandscape => !_isPortrait;
@@ -87,5 +89,7 @@ public class MainViewModel: INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsDbPrepared)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsDbError)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DbError)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SecondPasswordIsRequired)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(KeyFileIsRequired)));
     }
 }
