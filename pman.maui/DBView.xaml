@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Grid xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+      xmlns:local="clr-namespace:pman.maui"
+      x:Class="pman.maui.DBView"
+      BackgroundColor="AliceBlue">
+    <Grid.RowDefinitions>
+        <RowDefinition Height="35"/>
+        <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition />
+        <ColumnDefinition Width="100" />
+    </Grid.ColumnDefinitions>
+    <Label Grid.Row="0" Grid.Column="0" Text="Databases" Style="{DynamicResource titleLabelStyle}" />
+    <Button Grid.Row="0" Grid.Column="1" Style="{DynamicResource addButtonStyle}"
+            BackgroundColor="Green" Command="{Binding Path=OpenCommand, Source={RelativeSource AncestorType={x:Type local:MainPage}}}"/>
+    <CollectionView x:Name="DbView"
+                    x:FieldModifier="public"
+                    SelectionMode="Single"
+                    ItemsSource="{Binding PasswordDatabases}"
+                    Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                    SelectionChanged="DbView_SelectionChanged">
+        <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="local:PasswordDatabaseFile">
+                <SwipeView>
+                    <SwipeView.LeftItems>
+                        <SwipeItems>
+                            <SwipeItem Text="Remove"
+                                       BackgroundColor="Red"
+                                       Invoked="OnRemoveDb" />
+                            <SwipeItem Text="Edit"
+                                       BackgroundColor="Yellow"
+                                       Invoked="OnEditDb" />
+                        </SwipeItems>
+                    </SwipeView.LeftItems>
+                    <StackLayout>
+                        <Label Text="{Binding FullPath}"
+                                FontSize="20"
+                                VerticalOptions="Center" />
+                        <FlyoutBase.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="Remove" Clicked="OnRemoveDb" />
+                                <MenuFlyoutItem Text="Edit" Clicked="OnEditDb" />
+                            </MenuFlyout>
+                        </FlyoutBase.ContextFlyout>
+                    </StackLayout>
+                </SwipeView>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+</Grid>

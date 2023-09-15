@@ -1,0 +1,76 @@
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Text.Json;
+
+namespace pman.maui;
+
+public class MainViewModel: INotifyPropertyChanged
+{
+    private const string PasswordDatabasesPreference = "PasswordDatabases";
+    
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public ObservableCollection<PasswordDatabaseFile> PasswordDatabases { get; }
+    public ObservableCollection<PasswordDatabaseGroup> Groups { get; }
+    public ObservableCollection<PasswordDatabaseEntity> Entities { get; }
+
+    private PasswordDatabaseFile? _selectedDatabase;
+
+    public bool IsDbOpen => _selectedDatabase?.IsOpen ?? false;
+    public bool IsDbPrepared => _selectedDatabase?.IsPrepared ?? false;
+    public bool IsDbError => _selectedDatabase?.IsError ?? false;
+    public string? DbError => _selectedDatabase?.ErrorMessage ?? null;
+
+    public bool IsPortrait { get; set; }
+    
+    public MainViewModel()
+    {
+        PasswordDatabases = new ObservableCollection<PasswordDatabaseFile>();
+        Groups = new ObservableCollection<PasswordDatabaseGroup>();
+        Entities = new ObservableCollection<PasswordDatabaseEntity>();
+        _selectedDatabase = null;
+    }
+
+    internal void LoadPreferences()
+    {
+        LoadPasswordDatabases();
+    }
+
+    private void LoadPasswordDatabases()
+    {
+        var passwordDatabasesJson = Preferences.Default.Get(PasswordDatabasesPreference, "[]");
+        var passwordDatabases =
+            JsonSerializer.Deserialize<string[]>(passwordDatabasesJson);
+        if (passwordDatabases == null) return;
+        foreach (var passwordDatabaseName in passwordDatabases)
+            AddPasswordDatabaseFile(passwordDatabaseName);
+    }
+
+    private void SavePasswordDatabases()
+    {
+        var passwordDatabases = PasswordDatabases.Select(it => it.FullPath).ToArray();
+        var passwordDatabasesJson = JsonSerializer.Serialize(passwordDatabases);
+        Preferences.Default.Set(PasswordDatabasesPreference, passwordDatabasesJson);
+    }
+    
+    internal void AddPasswordDatabaseFile(string fileName)
+    {
+        PasswordDatabases.Add(new PasswordDatabaseFile(fileName));
+        SavePasswordDatabases();
+    }
+
+    internal void RemovePasswordDatabaseFile(int index)
+    {
+        PasswordDatabases.RemoveAt(index);
+        SavePasswordDatabases();
+    }
+    
+    internal void SelectDatabase(IReadOnlyList<object> currentSelection)
+    {
+        _selectedDatabase = currentSelection.FirstOrDefault() as PasswordDatabaseFile?;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsDbOpen)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsDbPrepared)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsDbError)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DbError)));
+    }
+}

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Grid xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+      xmlns:local="clr-namespace:pman.maui"
+      x:Class="pman.maui.GroupsView"
+      BackgroundColor="AntiqueWhite">
+    <Grid.RowDefinitions>
+        <RowDefinition Height="35"/>
+        <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition />
+        <ColumnDefinition Width="100" />
+    </Grid.ColumnDefinitions>
+    <Label Text="Groups" Style="{DynamicResource titleLabelStyle}" />
+    <Button Grid.Row="0" Grid.Column="1" Style="{DynamicResource addButtonStyle}"
+            BackgroundColor="Green" Clicked="AddGroup"/>
+    <CollectionView x:Name="GroupsListView"
+                    x:FieldModifier="public"
+                    SelectionMode="Single"
+                    ItemsSource="{Binding Groups}"
+                    Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+        <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="local:PasswordDatabaseGroup">
+                <StackLayout>
+                    <Label Text="{Binding Name}"
+                           FontSize="20"
+                           VerticalOptions="Center" />
+                </StackLayout>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+</Grid>
