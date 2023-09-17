@@ -44,4 +44,10 @@ public partial class MainPage
         base.OnSizeAllocated(width, height);
         ((MainViewModel)BindingContext).IsPortrait = height > width;
     }
+
+    private void CredentialsForm_OnOpenDatabaseEvent(object? sender, CredentialsForm.CredentialsFormEventArgs e)
+    {
+        e.ErrorMessage = ((MainViewModel)BindingContext).OpenDatabase(e.FirstPassword, 
+            e.SecondPassword, e.KeyFileName);
+    }
 }

@@ -31,6 +31,11 @@ public sealed class KeePassDb: IDisposable, IPasswordDatabase
             throw new FormatException(FileCorrupted);
     }
 
+    public void Open(SecureString password, SecureString? password2, string? keyFileName)
+    {
+        Decrypt(password, keyFileName);
+    }
+    
     public void Decrypt(SecureString password, string? keyFileName)
     {
         var credentials = new KeePassCredentials(password, keyFileName);

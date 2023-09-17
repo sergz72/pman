@@ -1,3 +1,4 @@
+using System.Security;
 using pman.utils;
 
 namespace pman;
@@ -13,6 +14,8 @@ public interface IPasswordDatabase
     List<DatabaseSearchResult> GetEntries(string filter);
 
     IPasswordDatabaseEntry GetEntry(string name);
+
+    void Open(SecureString password, SecureString? password2, string? keyFileName);
 }
 
 public interface IPasswordDatabaseEntry

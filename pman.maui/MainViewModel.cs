@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Security;
 using System.Text.Json;
 
 namespace pman.maui;
@@ -80,6 +81,19 @@ public class MainViewModel: INotifyPropertyChanged
     {
         PasswordDatabases.RemoveAt(index);
         SavePasswordDatabases();
+    }
+
+    internal string? OpenDatabase(SecureString password, SecureString? password2, string? keyFileName)
+    {
+        try
+        {
+            _selectedDatabase?.Open(password, password2, keyFileName);
+            return null;
+        }
+        catch (Exception e)
+        {
+            return e.Message;
+        }
     }
     
     internal void SelectDatabase(IReadOnlyList<object> currentSelection)

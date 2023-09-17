@@ -1,11 +1,8 @@
-using System.Buffers.Text;
-using System.Security.Cryptography;
 using System.Text;
-using pman.utils;
 
 namespace pman.keepass;
 
-public sealed class KeePassXmlDocument: IDisposable, IPasswordDatabase
+public sealed class KeePassXmlDocument: IDisposable
 {
     internal const string UserNameKey = "UserName";
     private const string TitleKey = "Title";

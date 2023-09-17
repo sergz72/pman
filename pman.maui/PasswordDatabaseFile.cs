@@ -1,3 +1,4 @@
+using System.Security;
 using pman.keepass;
 
 namespace pman.maui;
@@ -6,8 +7,11 @@ public struct PasswordDatabaseFile
 {
     public string FullPath { get; }
     public bool IsOpen { get; private set; }
-    public readonly bool IsPrepared => _passwordDatabase != null;
+    public readonly bool IsPrepared => _passwordDatabase != null && !IsOpen;
     public readonly bool IsError => ErrorMessage != null;
+
+    public readonly bool IsReadOnly => _passwordDatabase?.IsReadOnly() ?? false;
+    
     public bool SecondPasswordIsRequired { get; }
     public bool KeyFileIsRequired { get; }
     
@@ -64,5 +68,11 @@ public struct PasswordDatabaseFile
     public static bool operator !=(PasswordDatabaseFile left, PasswordDatabaseFile right)
     {
         return !(left == right);
+    }
+
+    public void Open(SecureString password, SecureString? password2, string? keyFileName)
+    {
+        _passwordDatabase?.Open(password, password2, keyFileName);
+        IsOpen = true;
     }
 }
