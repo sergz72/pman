@@ -2,8 +2,8 @@ namespace pman;
 
 public struct DatabaseSearchResult
 {
-    public readonly string Group;
-    public readonly string Name;
+    public string Group { get; }
+    public string Name { get; }
 
     public DatabaseSearchResult(string group, string name)
     {

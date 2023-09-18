@@ -24,14 +24,18 @@
             
             <local:DatabaseView/>
             
-            <Label Grid.Row="1" Grid.RowSpan="2" IsVisible="{Binding IsDbError}" FontSize="20" Text="{Binding DbError}"/>
+            <Label Grid.Row="1" Grid.RowSpan="2" IsVisible="{Binding IsDbError}" FontSize="20"
+                   Text="{Binding DbError}"/>
 
             <local:CredentialsForm Grid.Row="1" Grid.RowSpan="2"
                                    IsVisible="{Binding IsDbPrepared}"
                                    ShowSecondPassword="{Binding SecondPasswordIsRequired}"
-                                   ShowKeyFile="{Binding KeyFileIsRequired}"/>
+                                   ShowKeyFile="{Binding KeyFileIsRequired}"
+                                   OpenDatabaseEvent="CredentialsForm_OnOpenDatabaseEvent"/>
 
-            <local:GroupsView Grid.Row="1" IsVisible="{Binding IsDbOpen}"/>
+            <local:GroupsView Grid.Row="1" IsVisible="{Binding IsDbOpen}"
+                              IsDbReadOnly="{Binding IsReadOnly}"
+                              ItemsSource="{Binding Groups}"/>
 
             <local:EntityView Grid.Row="2" IsVisible="{Binding IsDbOpen}"/>
         </Grid>
@@ -44,7 +48,8 @@
             
             <local:DatabaseView/>
             
-            <Label Grid.Column="1" Grid.ColumnSpan="2" IsVisible="{Binding IsDbError}" FontSize="20" Text="{Binding DbError}"/>
+            <Label Grid.Column="1" Grid.ColumnSpan="2" IsVisible="{Binding IsDbError}" FontSize="20" 
+                   Text="{Binding DbError}"/>
 
             <local:CredentialsForm Grid.Column="1" Grid.ColumnSpan="2"
                                    IsVisible="{Binding IsDbPrepared}"
@@ -52,7 +57,9 @@
                                    ShowKeyFile="{Binding KeyFileIsRequired}"
                                    OpenDatabaseEvent="CredentialsForm_OnOpenDatabaseEvent"/>
 
-            <local:GroupsView Grid.Column="1" IsVisible="{Binding IsDbOpen}"/>
+            <local:GroupsView Grid.Column="1" IsVisible="{Binding IsDbOpen}"
+                              IsDbReadOnly="{Binding IsReadOnly}"
+                              ItemsSource="{Binding Groups}"/>
 
             <local:EntityView Grid.Column="2" IsVisible="{Binding IsDbOpen}"/>
         </Grid>

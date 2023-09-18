@@ -75,4 +75,9 @@ public class PasswordDatabaseFile
         _passwordDatabase?.Open(password, password2, keyFileName);
         IsOpen = true;
     }
+
+    public Dictionary<string, List<DatabaseSearchResult>> Search(string filter)
+    {
+        return _passwordDatabase?.GetGroups(filter) ?? new Dictionary<string, List<DatabaseSearchResult>>();
+    }
 }

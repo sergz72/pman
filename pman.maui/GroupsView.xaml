@@ -21,7 +21,7 @@
                     SelectionMode="Single"
                     Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
         <CollectionView.ItemTemplate>
-            <DataTemplate x:DataType="local:PasswordDatabaseGroup">
+            <DataTemplate x:DataType="local:DatabaseGroup">
                 <StackLayout>
                     <Label Text="{Binding Name}"
                            FontSize="20"

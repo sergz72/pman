@@ -5,15 +5,30 @@ using System.Text.Json;
 
 namespace pman.maui;
 
-public class MainViewModel: INotifyPropertyChanged
+public sealed class MainViewModel: INotifyPropertyChanged
 {
     private const string PasswordDatabasesPreference = "PasswordDatabases";
     
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ObservableCollection<PasswordDatabaseFile> PasswordDatabases { get; }
-    public ObservableCollection<PasswordDatabaseGroup> Groups { get; }
-    public ObservableCollection<PasswordDatabaseEntity> Entities { get; }
+
+    public List<DatabaseGroup> Groups
+    {
+        get
+        {
+            return _groups
+                .Select(group => new DatabaseGroup(group.Key, group.Value.Count))
+                .OrderBy(group => group.Name)
+                .ToList();
+        }
+    }
+
+    private Dictionary<string, List<DatabaseSearchResult>> _groups;
+    
+    public string? SelectedGroup { get; set; }
+    
+    public List<DatabaseSearchResult> Entities => SelectedGroup != null ? _groups[SelectedGroup] : new List<DatabaseSearchResult>();
 
     private PasswordDatabaseFile? _selectedDatabase;
 
@@ -44,8 +59,7 @@ public class MainViewModel: INotifyPropertyChanged
     public MainViewModel()
     {
         PasswordDatabases = new ObservableCollection<PasswordDatabaseFile>();
-        Groups = new ObservableCollection<PasswordDatabaseGroup>();
-        Entities = new ObservableCollection<PasswordDatabaseEntity>();
+        _groups = new Dictionary<string, List<DatabaseSearchResult>>();
         _selectedDatabase = null;
         _isPortrait = true;
     }
@@ -89,8 +103,11 @@ public class MainViewModel: INotifyPropertyChanged
         try
         {
             _selectedDatabase?.Open(password, password2, keyFileName);
+            Search("");
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsDbOpen)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsDbPrepared)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Groups)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Entities)));
             return null;
         }
         catch (Exception e)
@@ -98,15 +115,30 @@ public class MainViewModel: INotifyPropertyChanged
             return e.Message;
         }
     }
+
+    public void Search(string filter)
+    {
+        SelectedGroup = null;
+        _groups = IsDbOpen ? _selectedDatabase!.Search(filter) : new Dictionary<string, List<DatabaseSearchResult>>();
+    }
     
     internal void SelectDatabase(IReadOnlyList<object> currentSelection)
     {
         _selectedDatabase = (PasswordDatabaseFile?)currentSelection.FirstOrDefault();
+        Search("");
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsDbOpen)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsDbPrepared)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsDbError)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DbError)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SecondPasswordIsRequired)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(KeyFileIsRequired)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Groups)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Entities)));
     }
+}
+
+public readonly struct DatabaseGroup(string name, int count)
+{
+    public string Name { get; } = name;
+    public int EntryCount { get; } = count;
 }
