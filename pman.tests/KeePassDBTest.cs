@@ -22,27 +22,30 @@ public class KeePassDBTest
         s.AppendChar('9');
         db.Decrypt(s, null);
         
-        var groups = db.GetGroups();
+        var groups = db.GetGroups("");
         Assert.That(groups, Has.Count.EqualTo(6));
         Assert.That(groups.ContainsKey("General"));
 
-        var entries = db.GetGroupEntries("General");
+        var entries = groups["General"];
         Assert.That(entries, Has.Count.EqualTo(6));
         Assert.That(entries[0], Is.EqualTo(new DatabaseSearchResult("General", "Sample Entry")));
 
-        entries = db.GetGroupEntries("Windows");
+        entries = groups["Windows"];
         Assert.That(entries, Has.Count.EqualTo(1));
         Assert.That(entries[0], Is.EqualTo(new DatabaseSearchResult("Windows", "Sample Entry #2")));
 
-        entries = db.GetGroupEntries("Network");
+        entries = groups["Network"];
         Assert.That(entries, Has.Count.EqualTo(5));
         Assert.That(entries[0], Is.EqualTo(new DatabaseSearchResult("Network", "test6")));
         
-        entries = db.GetEntries("t10");
+        groups = db.GetGroups("t10");
+        Assert.That(groups, Has.Count.EqualTo(1));
+        Assert.That(groups.ContainsKey("Network"));
+        entries = groups["Network"];
         Assert.That(entries, Has.Count.EqualTo(1));
         Assert.That(entries[0], Is.EqualTo(new DatabaseSearchResult("Network", "test10")));
 
-        var entry = db.GetEntry("test10");
+        var entry = db.GetEntry(new DatabaseSearchResult("Network", "test10"));
         var user = entry.GetUserName()!.GetUnprotectedString();
         Assert.That(user, Is.EqualTo("user3"));
         var password = entry.GetPassword().GetUnprotectedString();

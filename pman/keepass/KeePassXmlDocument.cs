@@ -58,11 +58,12 @@ public sealed class KeePassXmlDocument: IDisposable
                 var title = entry.FindAll("Entry", "String")
                     .First(s => s.GetChildValue("Key").GetUnprotectedString() == TitleKey)
                     .GetChildValue("Value").GetUnprotectedString();
-                if (title.Contains(filter))
+                if (filter == "" || title.Contains(filter))
                    entries.Add(new DatabaseSearchResult(value, title));
             }
 
-            result[value] = entries;
+            if (filter == "" || entries.Count > 0)
+                result[value] = entries;
         }
         return result;
     }
