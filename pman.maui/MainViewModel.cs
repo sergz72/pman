@@ -88,6 +88,8 @@ public class MainViewModel: INotifyPropertyChanged
         try
         {
             _selectedDatabase?.Open(password, password2, keyFileName);
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsDbOpen)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsDbPrepared)));
             return null;
         }
         catch (Exception e)
@@ -98,7 +100,7 @@ public class MainViewModel: INotifyPropertyChanged
     
     internal void SelectDatabase(IReadOnlyList<object> currentSelection)
     {
-        _selectedDatabase = currentSelection.FirstOrDefault() as PasswordDatabaseFile?;
+        _selectedDatabase = (PasswordDatabaseFile?)currentSelection.FirstOrDefault();
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsDbOpen)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsDbPrepared)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsDbError)));

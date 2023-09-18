@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+using Konscious.Security.Cryptography;
 
 namespace pman.keepass;
 
@@ -16,25 +16,38 @@ internal sealed class Argon2Kdf: IKeyDerivationFunction
         0xB2, 0x3D, 0xFC, 0x3E, 0xC6, 0xF0, 0xA1, 0xE6
     };
 
-    private readonly Argon2PasswordHasher _hasher;
+    private enum Argon2Type
+    {
+        Argon2Id,
+        Argon2d
+    }
+    
     private readonly byte[] _salt;
+    private readonly Argon2Type _hasherType;
+    private readonly ulong _iterations;
+    private readonly uint _parallelism;
+    private readonly ulong _memory;
     
     internal Argon2Kdf(VariantDictionary kdfParameters)
     {
-        var t = kdfParameters.IsArray("$UUID", Argon2Duuid) ? Argon2Type.Argon2d : 
-            kdfParameters.IsArray("$UUID", Argon2Iduuid) ? Argon2Type.Argon2id :
+        _hasherType = kdfParameters.IsArray("$UUID", Argon2Duuid) ? Argon2Type.Argon2d : 
+            kdfParameters.IsArray("$UUID", Argon2Iduuid) ? Argon2Type.Argon2Id :
             throw new FormatException("unsupported key derivation function");
         if (kdfParameters.AsUint32("V") != 19)
             throw new FormatException("unsupported Argon2 version");
         _salt = kdfParameters.AsArray("S", -1);
-        _hasher = new Argon2PasswordHasher((uint)kdfParameters.AsUint64("I"), (uint)(kdfParameters.AsUint64("M") / 1024),
-            kdfParameters.AsUint32("P"), t, 32, (uint)_salt.Length);
+        _iterations = kdfParameters.AsUint64("I");
+        _parallelism = kdfParameters.AsUint32("P");
+        _memory = kdfParameters.AsUint64("M") / 1024;
     }
 
     public byte[] GetTransformedKey(byte[] digest)
     {
-        var buffer = new byte[32];
-        _hasher.Hash(digest, new ReadOnlySpan<byte>(_salt), new Span<byte>(buffer));
-        return buffer;
+        Argon2 hasher = _hasherType == Argon2Type.Argon2d ? new Argon2d(digest) : new Argon2id(digest);
+        hasher.Iterations = (int)_iterations;
+        hasher.Salt = _salt;
+        hasher.DegreeOfParallelism = (int)_parallelism;
+        hasher.MemorySize = (int)_memory;
+        return hasher.GetBytes(32);
     }
 }

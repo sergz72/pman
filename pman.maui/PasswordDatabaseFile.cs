@@ -3,14 +3,14 @@ using pman.keepass;
 
 namespace pman.maui;
 
-public struct PasswordDatabaseFile
+public class PasswordDatabaseFile
 {
     public string FullPath { get; }
     public bool IsOpen { get; private set; }
-    public readonly bool IsPrepared => _passwordDatabase != null && !IsOpen;
-    public readonly bool IsError => ErrorMessage != null;
+    public bool IsPrepared => _passwordDatabase != null && !IsOpen;
+    public bool IsError => ErrorMessage != null;
 
-    public readonly bool IsReadOnly => _passwordDatabase?.IsReadOnly() ?? false;
+    public bool IsReadOnly => _passwordDatabase?.IsReadOnly() ?? false;
     
     public bool SecondPasswordIsRequired { get; }
     public bool KeyFileIsRequired { get; }
@@ -43,19 +43,19 @@ public struct PasswordDatabaseFile
         }
     }
 
-    public readonly override int GetHashCode()
+    public override int GetHashCode()
     {
         return FullPath.GetHashCode();
     }
 
-    public readonly override bool Equals(object? obj)
+    public override bool Equals(object? obj)
     {
         if (obj is PasswordDatabaseFile db)
             return db.FullPath == FullPath;
         return false;
     }
 
-    public readonly override string ToString()
+    public override string ToString()
     {
         return FullPath;
     }
