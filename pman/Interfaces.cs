@@ -7,13 +7,10 @@ public interface IPasswordDatabase
 {
     bool IsReadOnly();
     
-    Dictionary<string, int> GetGroups();
+    Dictionary<string, List<DatabaseSearchResult>> GetGroups(string filter);
     HashSet<string> GetUsers();
-
-    List<DatabaseSearchResult> GetGroupEntries(string group);
-    List<DatabaseSearchResult> GetEntries(string filter);
-
-    IPasswordDatabaseEntry GetEntry(string name);
+    
+    IPasswordDatabaseEntry GetEntry(DatabaseSearchResult entry);
 
     void Open(SecureString password, SecureString? password2, string? keyFileName);
 }
@@ -25,7 +22,7 @@ public interface IPasswordDatabaseEntry
     ProtectedBytes? GetUrl();
     Times GetTimes();
     IEnumerable<string> GetProperties();
-    string GetProperty(string name);
+    ProtectedBytes GetProperty(string name);
 
     void SetUserId(int id);
     void SetGroupId(int id);

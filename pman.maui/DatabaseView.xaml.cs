@@ -9,7 +9,7 @@ public partial class DatabaseView
     
     private void DbView_SelectionChanged(Object sender, SelectionChangedEventArgs e)
     {
-        ((MainViewModel)this.BindingContext).SelectDatabase(e.CurrentSelection);
+        ((MainViewModel)BindingContext).SelectDatabase(e.CurrentSelection);
     }
     
     private void OnRemoveDb(object? sender, EventArgs e)
@@ -18,5 +18,10 @@ public partial class DatabaseView
     
     private void OnEditDb(object? sender, EventArgs e)
     {
+        var model = (MainViewModel)BindingContext;
+        if (!model.IsReadOnly)
+        {
+            
+        }
     }
 }

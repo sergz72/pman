@@ -88,28 +88,18 @@ public sealed class KeePassDb: IDisposable, IPasswordDatabase
         return true;
     }
 
-    public Dictionary<string, int> GetGroups()
+    public Dictionary<string, List<DatabaseSearchResult>> GetGroups(string filter)
     {
-        return _database?.GetGroups() ?? throw new FormatException(DatabaseIsNotOpen);
+        return _database?.GetGroups(filter) ?? throw new FormatException(DatabaseIsNotOpen);
     }
 
     public HashSet<string> GetUsers()
     {
         return _database?.GetUsers() ?? throw new FormatException(DatabaseIsNotOpen);
     }
-
-    public List<DatabaseSearchResult> GetGroupEntries(string group)
+    
+    public IPasswordDatabaseEntry GetEntry(DatabaseSearchResult entry)
     {
-        return _database?.GetGroupEntries(group) ?? throw new FormatException(DatabaseIsNotOpen);
-    }
-
-    public List<DatabaseSearchResult> GetEntries(string filter)
-    {
-        return _database?.GetEntries(filter) ?? throw new FormatException(DatabaseIsNotOpen);
-    }
-
-    public IPasswordDatabaseEntry GetEntry(string name)
-    {
-        return _database?.GetEntry(name) ?? throw new FormatException(DatabaseIsNotOpen);
+        return _database?.GetEntry(entry) ?? throw new FormatException(DatabaseIsNotOpen);
     }
 }

@@ -18,7 +18,6 @@
     <CollectionView x:Name="EntitiesView"
                     x:FieldModifier="public"
                     SelectionMode="Single"
-                    ItemsSource="{Binding Entities}"
                     Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
         <CollectionView.ItemTemplate>
             <DataTemplate x:DataType="local:PasswordDatabaseEntity">

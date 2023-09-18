@@ -23,6 +23,7 @@ public class MainViewModel: INotifyPropertyChanged
     public string? DbError => _selectedDatabase?.ErrorMessage ?? null;
     public bool SecondPasswordIsRequired => _selectedDatabase?.SecondPasswordIsRequired ?? false;
     public bool KeyFileIsRequired => _selectedDatabase?.KeyFileIsRequired ?? false;
+    public bool IsReadOnly => _selectedDatabase?.IsReadOnly ?? true;
     
     private bool _isPortrait;
 

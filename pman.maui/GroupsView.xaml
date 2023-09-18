@@ -14,12 +14,11 @@
         <ColumnDefinition Width="100" />
     </Grid.ColumnDefinitions>
     <Label Text="Groups" Style="{DynamicResource titleLabelStyle}" />
-    <Button Grid.Row="0" Grid.Column="1" Style="{DynamicResource addButtonStyle}"
-            BackgroundColor="Green" Clicked="AddGroup"/>
+    <Button x:Name="AddButton" Grid.Row="0" Grid.Column="1" Style="{DynamicResource addButtonStyle}"
+            BackgroundColor="Green" Clicked="AddGroup" IsEnabled="False"/>
     <CollectionView x:Name="GroupsListView"
                     x:FieldModifier="public"
                     SelectionMode="Single"
-                    ItemsSource="{Binding Groups}"
                     Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
         <CollectionView.ItemTemplate>
             <DataTemplate x:DataType="local:PasswordDatabaseGroup">

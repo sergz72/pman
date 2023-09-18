@@ -44,15 +44,25 @@ public sealed class KeePassXmlDocument: IDisposable
     private IEnumerable<SecureXmlDocument.XmlTag> GetAllGroups() =>
         _document.FindAll("KeePassFile", "Root", "Group", "Group");
 
-    public Dictionary<string, int> GetGroups()
+    public Dictionary<string, List<DatabaseSearchResult>> GetGroups(string filter)
     {
-        var result = new Dictionary<string, int>();
+        var result = new Dictionary<string, List<DatabaseSearchResult>>();
         foreach (var group in GetAllGroups())
         {
             var value = group.GetChildValue("Name").GetUnprotectedString();
             if (result.ContainsKey(value))
                 throw new KeePassXmlDocumentException("duplicate group name");
-            result[value] = group.FindAll("Group", "Entry").Count();
+            var entries = new List<DatabaseSearchResult>();
+            foreach (var entry in group.FindAll("Group", "Entry"))
+            {
+                var title = entry.FindAll("Entry", "String")
+                    .First(s => s.GetChildValue("Key").GetUnprotectedString() == TitleKey)
+                    .GetChildValue("Value").GetUnprotectedString();
+                if (title.Contains(filter))
+                   entries.Add(new DatabaseSearchResult(value, title));
+            }
+
+            result[value] = entries;
         }
         return result;
     }
@@ -71,53 +81,18 @@ public sealed class KeePassXmlDocument: IDisposable
         }
         return result;
     }
-
-    public List<DatabaseSearchResult> GetGroupEntries(string groupName)
+    
+    public IPasswordDatabaseEntry GetEntry(DatabaseSearchResult entry)
     {
         var group = GetAllGroups()
-            .First(group => group.GetChildValue("Name").GetUnprotectedString() == groupName);
-        var result = new List<DatabaseSearchResult>();
-        foreach (var entry in group.FindAll("Group", "Entry"))
+            .First(group => group.GetChildValue("Name").GetUnprotectedString() == entry.Group);
+        foreach (var entryTag in group.FindAll("Group", "Entry"))
         {
-            var title = entry.FindAll("Entry", "String")
-                .First(s => s.GetChildValue("Key").GetUnprotectedString() == TitleKey);
-            result.Add(new DatabaseSearchResult(groupName, title.GetChildValue("Value").GetUnprotectedString()));
-        }
-
-        return result;
-    }
-
-    public List<DatabaseSearchResult> GetEntries(string filter)
-    {
-        var result = new List<DatabaseSearchResult>();
-        foreach (var group in GetAllGroups())
-        {
-            var groupName = group.GetChildValue("Name").GetUnprotectedString();
-            foreach (var entry in group.FindAll("Group", "Entry"))
-            {
-                var title = entry.FindAll("Entry", "String")
-                    .First(s => s.GetChildValue("Key").GetUnprotectedString() == TitleKey)
-                    .GetChildValue("Value").GetUnprotectedString();
-                if (title.Contains(filter))
-                    result.Add(new DatabaseSearchResult(groupName, title));
-            }
-        }
-        return result;
-    }
-
-    public IPasswordDatabaseEntry GetEntry(string name)
-    {
-        foreach (var group in GetAllGroups())
-        {
-            var groupName = group.GetChildValue("Name").GetUnprotectedString();
-            foreach (var entry in group.FindAll("Group", "Entry"))
-            {
-                var title = entry.FindAll("Entry", "String")
-                    .First(s => s.GetChildValue("Key").GetUnprotectedString() == TitleKey)
-                    .GetChildValue("Value").GetUnprotectedString();
-                if (title == name)
-                    return new KeePassDatabaseEntry(entry);
-            }
+            var title = entryTag.FindAll("Entry", "String")
+                .First(s => s.GetChildValue("Key").GetUnprotectedString() == TitleKey)
+                .GetChildValue("Value").GetUnprotectedString();
+            if (title == entry.Name)
+                return new KeePassDatabaseEntry(entryTag);
         }
         throw new KeePassXmlDocumentException("entry not found");
     }

@@ -57,9 +57,9 @@ internal sealed class KeePassDatabaseEntry: IPasswordDatabaseEntry
         return _properties.Keys;
     }
 
-    public string GetProperty(string name)
+    public ProtectedBytes GetProperty(string name)
     {
-        return _properties[name].GetUnprotectedString();
+        return _properties[name];
     }
 
     public void SetUserId(int id)
