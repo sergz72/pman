@@ -2,6 +2,16 @@ namespace pman.maui;
 
 public partial class GroupsView
 {
+    public class GroupsEventArgs
+    {
+        public readonly string? SelectedGroup;
+
+        public GroupsEventArgs(string? selectedGroup)
+        {
+            SelectedGroup = selectedGroup;
+        }
+    }
+
     public static readonly BindableProperty IsDbReadOnlyProperty =
         BindableProperty.Create (nameof(IsDbReadOnly), typeof(bool), typeof(GroupsView),
             false, propertyChanged: OnReadOnlyChanged);
@@ -17,11 +27,13 @@ public partial class GroupsView
         set => SetValue(IsDbReadOnlyProperty, value);
     }
 
-    public List<DatabaseSearchResult> ItemsSource
+    public List<DatabaseGroup> ItemsSource
     {
-        get => (List<DatabaseSearchResult>)GetValue(ItemsSourceProperty);
+        get => (List<DatabaseGroup>)GetValue(ItemsSourceProperty);
         set => SetValue(ItemsSourceProperty, value);
     }
+
+    public event EventHandler<GroupsEventArgs>? SelectGroupEvent;
     
     public GroupsView()
     {
@@ -42,5 +54,20 @@ public partial class GroupsView
     {
         var v = (GroupsView)bindable;
         v.GroupsListView.ItemsSource = (List<DatabaseGroup>)newvalue;
+        v.GroupsListView.SelectedItem = null;
+    }
+
+    private void OnRemoveGroup(object? sender, EventArgs e)
+    {
+    }
+    
+    private void OnEditGroup(object? sender, EventArgs e)
+    {
+    }
+
+    private void GroupsListView_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        var group = (DatabaseGroup?)e.CurrentSelection.FirstOrDefault();
+        SelectGroupEvent?.Invoke(this, new GroupsEventArgs(group?.Name));
     }
 }

@@ -2,7 +2,7 @@
 
 <Grid xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-      xmlns:local="clr-namespace:pman;assembly=pman"
+      xmlns:local="clr-namespace:pman.maui"
       x:Class="pman.maui.EntityView">
     <Grid.RowDefinitions>
         <RowDefinition Height="35"/>
@@ -13,16 +13,16 @@
         <ColumnDefinition Width="100" />
     </Grid.ColumnDefinitions>
     <Label Text="Entities" Style="{DynamicResource titleLabelStyle}" />
-    <Button Grid.Row="0" Grid.Column="1" Style="{DynamicResource addButtonStyle}"
-            BackgroundColor="Green" Clicked="AddEntity" />
+    <Button x:Name="AddButton" Grid.Row="0" Grid.Column="1" Style="{DynamicResource addButtonStyle}"
+            BackgroundColor="Green" Clicked="AddEntity" IsEnabled="False" />
     <CollectionView x:Name="EntitiesView"
                     x:FieldModifier="public"
                     SelectionMode="Single"
                     Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
         <CollectionView.ItemTemplate>
-            <DataTemplate x:DataType="local:DatabaseSearchResult">
+            <DataTemplate x:DataType="local:DatabaseEntity">
                 <StackLayout>
-                    <Label Text="{Binding Name}"
+                    <Label Text="{Binding Entity.Name}"
                            FontSize="20"
                            VerticalOptions="Center" />
                 </StackLayout>

@@ -8,7 +8,7 @@ public class Program
     static void Main(string[] args)
     {
         #if DEBUG
-        Thread.Sleep(4000);
+        Thread.Sleep(5000);
         #endif
         // if you want to use a different Application Delegate class from "AppDelegate"
         // you can specify it here.

@@ -42,7 +42,7 @@
                         <FlyoutBase.ContextFlyout>
                             <MenuFlyout>
                                 <MenuFlyoutItem Text="Remove" Clicked="OnRemoveDb" />
-                                <MenuFlyoutItem Text="Edit" Clicked="OnEditDb" />
+                                <MenuFlyoutItem Text="Edit" Clicked="OnEditDb" IsEnabled="{Binding IsReadWrite}"/>
                             </MenuFlyout>
                         </FlyoutBase.ContextFlyout>
                     </StackLayout>

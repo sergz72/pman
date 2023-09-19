@@ -50,4 +50,9 @@ public partial class MainPage
         e.ErrorMessage = ((MainViewModel)BindingContext).OpenDatabase(e.FirstPassword, 
             e.SecondPassword, e.KeyFileName);
     }
+
+    private void GroupsView_OnSelectGroupEvent(object? sender, GroupsView.GroupsEventArgs e)
+    {
+        ((MainViewModel)BindingContext).SelectGroup(e.SelectedGroup);
+    }
 }

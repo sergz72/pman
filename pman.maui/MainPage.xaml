@@ -35,9 +35,12 @@
 
             <local:GroupsView Grid.Row="1" IsVisible="{Binding IsDbOpen}"
                               IsDbReadOnly="{Binding IsReadOnly}"
-                              ItemsSource="{Binding Groups}"/>
+                              ItemsSource="{Binding Groups}"
+                              SelectGroupEvent="GroupsView_OnSelectGroupEvent"/>
 
-            <local:EntityView Grid.Row="2" IsVisible="{Binding IsDbOpen}"/>
+            <local:EntityView Grid.Row="2" IsVisible="{Binding IsDbOpen}"
+                              IsDbReadOnly="{Binding IsReadOnly}"
+                              ItemsSource="{Binding Entities}"/>
         </Grid>
         <Grid IsVisible="{Binding IsLandscape}">
             <Grid.ColumnDefinitions>
@@ -59,9 +62,12 @@
 
             <local:GroupsView Grid.Column="1" IsVisible="{Binding IsDbOpen}"
                               IsDbReadOnly="{Binding IsReadOnly}"
-                              ItemsSource="{Binding Groups}"/>
+                              ItemsSource="{Binding Groups}"
+                              SelectGroupEvent="GroupsView_OnSelectGroupEvent"/>
 
-            <local:EntityView Grid.Column="2" IsVisible="{Binding IsDbOpen}"/>
+            <local:EntityView Grid.Column="2" IsVisible="{Binding IsDbOpen}"
+                              IsDbReadOnly="{Binding IsReadOnly}"
+                              ItemsSource="{Binding Entities}"/>
         </Grid>
     </Grid>
 </ContentPage>

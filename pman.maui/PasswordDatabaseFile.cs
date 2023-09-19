@@ -10,7 +10,8 @@ public class PasswordDatabaseFile
     public bool IsPrepared => _passwordDatabase != null && !IsOpen;
     public bool IsError => ErrorMessage != null;
 
-    public bool IsReadOnly => _passwordDatabase?.IsReadOnly() ?? false;
+    public bool IsReadOnly => _passwordDatabase?.IsReadOnly() ?? true;
+    public bool IsReadWrite => !_passwordDatabase?.IsReadOnly() ?? false;
     
     public bool SecondPasswordIsRequired { get; }
     public bool KeyFileIsRequired { get; }
