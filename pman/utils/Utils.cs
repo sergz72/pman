@@ -2,7 +2,6 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
 using System.Text;
-using Integrative.Encryption;
 
 namespace pman.utils;
 
@@ -27,10 +26,18 @@ public static class Utils
 
 public sealed class ProtectedBytes: IDisposable
 {
-    private static readonly byte[] AdditionalEntropy = RandomNumberGenerator.GetBytes(32);
+    private static readonly AesEngine _engine;
 
     private readonly byte[] _bytes;
 
+    static ProtectedBytes()
+    {
+        byte[] key = RandomNumberGenerator.GetBytes(32);
+        byte[] iv = RandomNumberGenerator.GetBytes(16);
+        _engine = new AesEngine(iv);
+        _engine.Init(key);
+    }
+    
     private ProtectedBytes(byte[] source)
     {
         _bytes = source;
@@ -40,13 +47,13 @@ public sealed class ProtectedBytes: IDisposable
     {
         // Encrypt the data using DataProtectionScope.CurrentUser. The result can be decrypted
         // only by the same current user.
-        return new ProtectedBytes(CrossProtect.Protect(data, AdditionalEntropy, DataProtectionScope.CurrentUser));
+        return new ProtectedBytes(_engine.Encrypt(data));
     }
 
     public byte[] Unprotect()
     {
         //Decrypt the data using DataProtectionScope.CurrentUser.
-        return CrossProtect.Unprotect(_bytes, AdditionalEntropy, DataProtectionScope.CurrentUser);
+        return _engine.Decrypt(_bytes);
     }
 
     public void Dispose()
